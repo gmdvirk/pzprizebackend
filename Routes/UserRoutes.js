@@ -1,5 +1,5 @@
 const {getAllUsers , GetUserById, Createuser, updateuserById, DeleteUserById,disableuser,ableuser,followuserById,
-    unfollowuserById, Login,Addowner,getAllDistributors,getAllMyDistributors,getAllMerchants,getAllMyMerchants,getAllSubDistributors,getAllMySubDistributors} = require("../Controllers/Users")
+    unfollowuserById, Login,Edituser,getAllDistributors,getAllMyDistributors,getAllMerchants,getAllMyMerchants,getAllSubDistributors,getAllMySubDistributors} = require("../Controllers/Users")
 
 const express = require("express");
 const { AuthenticateUser,Authenticatedornot } = require("../utils");
@@ -16,6 +16,7 @@ router.get("/"  ,AuthenticateUser,  getAllUsers )
 router.get("/auth"  ,Authenticatedornot )
 router.post("/login" , Login )
 router.post("/adduser",AuthenticateUser , Createuser )
+router.put("/edituser",AuthenticateUser , Edituser )
 router.post("/getallusers" , Createuser ) //middleware to be added
 router.get("/:id" , GetUserById)
 router.patch("/updateprofile",AuthenticateUser , updateuserById)
@@ -24,4 +25,9 @@ router.put("/ableuser",AuthenticateUser ,ableuser)
 router.put("/follow",AuthenticateUser ,followuserById)
 router.put("/unfollow",AuthenticateUser ,unfollowuserById)
 module.exports = router;
+
+
+
+
+
 

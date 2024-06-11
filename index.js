@@ -2,6 +2,7 @@ const express = require("express")
 const mongoose  =require("mongoose")
 const app = express();
 const Userrouter = require("./Routes/UserRoutes");
+const Drawrouter = require("./Routes/DrawRoutes");
 app.use(express.json())
 const cors = require("cors")
 require("dotenv").config()
@@ -11,6 +12,7 @@ app.use(cors({
 }))
 
 app.use("/user" ,  Userrouter)
+app.use("/draw" ,  Drawrouter)
 
 app.get("/" , (req , res)=>{
     res.json({"Meesage":"Hello"})

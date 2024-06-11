@@ -114,20 +114,33 @@ let GetUserById = async(req ,res)=>{
       res.status(404).json({"Message":"Error" , err:err})
     }
 }
-////added by to be fixed
+let Edituser =async (req , res)=>{
+  let User=req.Tokendata
+  
+  let data = req.body;
+  let id = data._id;
+  let users = await user.findByIdAndUpdate(id , data);
+  if(users)
+  {
+    res.status(200).json({status:true,data:users})
+  }else
+  {
+    res.status(404).json({status:false,"Message":"Error" })
+  }
+}
 let Createuser =async (req , res)=>{
   let {username,name,password,address,contact,role,blocked } = req.body;
 let User = await user.findOne({username});
 if(User){
-  res.status(500).json({"Message":"A same user exists with this rollnumber enter another rollnumber"})
+  res.status(500).json({status:false,"Message":"A same user exists with this username enter another username"})
 }
 else{
   let addedbyuserid = req.Tokendata.userid
   let data = {username,name,password,address,contact ,role,blocked,addedby:Number(addedbyuserid)};
   user.create(data).then(data=>{
-      res.status(201).json(data)
+      res.status(200).json({status:true,data})
   }).catch(err=>{
-      res.status(500).json({"Message":"there was Some Error"})
+      res.status(500).json({status:false,"Message":"there was Some Error"})
   })
 }
 }
@@ -139,10 +152,10 @@ let updateuserById = async(req ,res)=>{
     let users = await user.findByIdAndUpdate(id , data);
     if(users)
     {
-       res.status(200).json(users)
+       res.status(200).json({status:true,data:users})
     }else
     {
-      res.status(404).json({"Message":"Error" , err:err})
+      res.status(404).json({status:false,"Message":"Error"})
     }
 }
 
@@ -337,5 +350,5 @@ module.exports  ={
     followuserById,
     unfollowuserById,
     Login,
-    Addowner
+    Edituser
 }
