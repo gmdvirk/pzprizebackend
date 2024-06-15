@@ -18,9 +18,9 @@ let getAllDraws= async(req , res)=>{
   }
   let Createdraw =async (req , res)=>{
     if(req.Tokendata.role==="superadmin"){
-        let {title,time,onedigita,onedigitb,twodigita,twodigitb,threedigita,threedigitb,fourdigita,fourdigitb,fivedigita,fivedigitb,status } = req.body;
+        let {title,time,date,onedigita,onedigitb,twodigita,twodigitb,threedigita,threedigitb,fourdigita,fourdigitb,fivedigita,fivedigitb,status } = req.body;
         let addedbyuserid = req.Tokendata.userid
-        let data = {title,time,onedigita,onedigitb,twodigita,twodigitb,threedigita,threedigitb,fourdigita,fourdigitb,fivedigita,fivedigitb,soldonedigita:"0",soldonedigitb:"0",soldtwodigita:"0",soldtwodigitb:"0",soldthreedigita:"0",soldthreedigitb:"0",soldfourdigita:"0",soldfourdigitb:"0",soldfivedigita:"0",soldfivedigitb:"0",firstprize:"",secondprize1:"",secondprize2:"",secondprize3:"",secondprize4:"",secondprize5:"",status,addedby:Number(addedbyuserid)};
+        let data = {title,time,date,onedigita,onedigitb,twodigita,twodigitb,threedigita,threedigitb,fourdigita,fourdigitb,fivedigita,fivedigitb,soldonedigita:"0",soldonedigitb:"0",soldtwodigita:"0",soldtwodigitb:"0",soldthreedigita:"0",soldthreedigitb:"0",soldfourdigita:"0",soldfourdigitb:"0",soldfivedigita:"0",soldfivedigitb:"0",firstprize:"",secondprize1:"",secondprize2:"",secondprize3:"",secondprize4:"",secondprize5:"",status,addedby:Number(addedbyuserid)};
         draw.create(data).then(data=>{
             res.status(200).json({status:true,data})
         }).catch(err=>{

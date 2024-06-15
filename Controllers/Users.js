@@ -136,7 +136,8 @@ if(User){
 }
 else{
   let addedbyuserid = req.Tokendata.userid
-  let data = {username,name,password,address,contact ,role,blocked,addedby:Number(addedbyuserid)};
+  let temppay={cash:0,credit:0,balanceupline:0}
+  let data = {username,name,password,address,contact,payment:temppay ,role,blocked,addedby:Number(addedbyuserid)};
   user.create(data).then(data=>{
       res.status(200).json({status:true,data})
   }).catch(err=>{

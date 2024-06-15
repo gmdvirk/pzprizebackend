@@ -9,7 +9,43 @@ const userSchema = new mongoose.Schema({
     contact: String,
     addedby: Number,
     role: String,
-    blocked: Boolean
+    blocked: Boolean,
+    upline:Number,
+    payment:{
+        cash:Number,
+        credit:Number,
+        balanceupline:Number
+    },
+    comission:{
+        comission:Number,
+        pcpercentage:String,
+    },
+    limit:{
+        hindsaa:Number,
+        hindsab:Number,
+        akraa:Number,
+        akrab:Number,
+        tendolaa:Number,
+        tendolab:Number,
+        panogadaa:Number,
+        panogadab:Number,
+    },
+    prize:{
+        prizea:Number,
+        prizeb:Number,
+        prizec:Number,
+        prized:Number,
+    },
+    purchase:{
+        plimitaf:Number,
+        plimitas:Number,
+        plimitbf:Number,
+        plimitbs:Number,
+        plimitcf:Number,
+        plimitcs:Number,
+        plimitdf:Number,
+        plimitds:Number,
+    }
 }, { timestamps: true });
 
 userSchema.plugin(AutoIncrement, { inc_field: 'userid' });
