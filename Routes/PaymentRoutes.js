@@ -5,5 +5,5 @@ const { AuthenticateUser,Authenticatedornot } = require("../utils");
 const router = express.Router();
 router.post("/addcash"  ,AuthenticateUser,  Addcashpayment )
 router.post("/addcredit"  ,AuthenticateUser,  Addcreditpayment )
-router.get("/getpaymentsbyid/:id",getAllpaymentsbyID)
+router.get("/getpaymentsbyid/:id",AuthenticateUser,getAllpaymentsbyID)
 module.exports = router;

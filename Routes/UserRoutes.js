@@ -1,5 +1,4 @@
-const {getAllUsers , GetUserById, Createuser, updateuserById, DeleteUserById,disableuser,ableuser,followuserById,
-    unfollowuserById, Login,Edituser,getAllDistributors,getAllMyDistributors,getAllMerchants,getAllMyMerchants,getAllSubDistributors,getAllMySubDistributors} = require("../Controllers/Users")
+const {getAllUsers , GetUserById,getAlldetailsbyId, Createuser, updateuserById, DeleteUserById, Login,Edituser,getAllDistributors,getAllMyDistributors,getAllMerchants,getAllMyMerchants,getAllSubDistributors,getAllMySubDistributors} = require("../Controllers/Users")
 
 const express = require("express");
 const { AuthenticateUser,Authenticatedornot } = require("../utils");
@@ -19,11 +18,8 @@ router.post("/adduser",AuthenticateUser , Createuser )
 router.put("/edituser",AuthenticateUser , Edituser )
 router.post("/getallusers" , Createuser ) //middleware to be added
 router.get("/:id" , GetUserById)
+router.get("/getuserdetailbyid/:id",AuthenticateUser,getAlldetailsbyId)
 router.patch("/updateprofile",AuthenticateUser , updateuserById)
-router.put("/disableuser",AuthenticateUser ,disableuser)
-router.put("/ableuser",AuthenticateUser ,ableuser)
-router.put("/follow",AuthenticateUser ,followuserById)
-router.put("/unfollow",AuthenticateUser ,unfollowuserById)
 module.exports = router;
 
 

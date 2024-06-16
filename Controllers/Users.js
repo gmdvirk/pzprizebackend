@@ -160,115 +160,6 @@ let updateuserById = async(req ,res)=>{
     }
 }
 
-let followuserById = async(req ,res)=>{
-  const id=req.Tokendata.id;
-  const settobefollowed = await user.findById(id);
-    const data= req.body;
-    try {
-      const tobefollowed  = data.tobefollowed;
-      if (!settobefollowed) {
-        return res.status(404).json({ error: 'Account not found' });
-      }
-  
-      // Append the new comment to the Comments array
-      settobefollowed.Following.push({Username:data.Username,UserId:data.tobefollowed});
-  
-      // Save the updated blog document
-      await settobefollowed.save();
-  
-      res.json(settobefollowed);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Server error' });
-    }
-}
-
-let unfollowuserById = async(req ,res)=>{
-    const data= req.body;
-    const id=req.Tokendata.id;
-  const settobeunfollowed = await user.findById(id);
-    try {
-      const UserId  = data.UserId; // Comments array with the new comment
-  
-      if (!settobeunfollowed) {
-        return res.status(404).json({ error: 'Account not found' });
-      }
-      let temparr=settobeunfollowed.Following;
-      
-    let index=null;
-    for(let i=0;i<temparr.length;i++){
-      if(temparr[i].UserId===data.tobeunfollowed){
-        index=i;
-      }
-    }
-        settobeunfollowed.Following.splice(index,1);
-
-  
-      // Save the updated blog document
-      await settobeunfollowed.save();
-  
-      res.json(settobeunfollowed);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Server error' });
-    }
-}
-let disableuser = async(req ,res)=>{
-  if(req.Tokendata.role!=="Admin"){
-    res.status(403).json({"Message":"You dont have access"})
-  }
-  else{
-    let data = req.body;
-    let id = data.UserId;
-    let users = await user.findOne({_id:id});
-    if(users)
-    {
-        users.blocked=true;
-        users.reason=data.reason;
-        let usersupdated = await user.findByIdAndUpdate(id , users);
-        if(usersupdated)
-        {
-           res.status(200).json(usersupdated)
-        }else
-        {
-          res.status(404).json({"Message":"Error"})
-        }
-    }else
-    {
-      res.status(404).json({"Message":"Error"})
-    } 
-  }
-   
-}
-
-let ableuser = async(req ,res)=>{
-  if(req.Tokendata.role!=="Admin"){
-    res.status(403).json({"Message":"You dont have access"})
-  }
-  else{
-    let data = req.body;
-    let id = data.UserId;
-    let users = await user.findOne({_id:id});
-    if(users)
-    {
-        users.blocked=false;
-        users.reason="";
-        let usersupdated = await user.findByIdAndUpdate(id , users);
-        if(usersupdated)
-        {
-           res.status(200).json(usersupdated)
-        }else
-        {
-          res.status(404).json({"Message":"Error"})
-        }
-    }else
-    {
-      res.status(404).json({"Message":"Error"})
-    } 
-  }
-
-    
-}
 
 let DeleteUserById =  async(req ,res)=>{
     let id = req.params.id;
@@ -281,14 +172,22 @@ let DeleteUserById =  async(req ,res)=>{
       res.status(404).json({"Message":"Error" , err:err})
     }
 }
-let Addowner =  async(req ,res)=>{
-  let data = req.body;
-    user.create(data).then(data=>{
-        res.status(201).json(data)
-    }).catch(err=>{
-        res.status(500).json({"Message":"there was Some Error"})
-    })
-}
+let getAlldetailsbyId = async (req, res) => {
+  let id = req.params.id;
+  try {
+    let users = await user.findOne({ _id: id });
+    if (users) {
+      let referralusers = await user.find({ addedby: id });
+      res.status(200).json({ users, referralusers });
+    } else {
+      res.status(404).json({ "Message": "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ "Message": "There was an error", "Error": error.message });
+  }
+};
+
+
 let Login = async(req , res)=>{
     let {username , password} = req.body;
     try{
@@ -346,10 +245,7 @@ module.exports  ={
     updateuserById,
     DeleteUserById,
     Createuser,
-    disableuser,
-    ableuser,
-    followuserById,
-    unfollowuserById,
     Login,
-    Edituser
+    Edituser,
+    getAlldetailsbyId
 }
