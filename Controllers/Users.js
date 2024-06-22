@@ -3,7 +3,7 @@ const user = require("../models/Users.schema")
 const jwt = require("jsonwebtoken")
 let getAllUsers = async(req , res)=>{
   if(req.Tokendata.role==="superadmin"){
-    let users = await user.find({ role: { $ne: 'superadmin' } });
+    let users = await user.find({ role: { $ne: 'superadmin' } ,addedby:req.Tokendata._id});
     if(users)
     {
        res.status(200).json(users)
@@ -63,7 +63,7 @@ let getAllMyDistributors = async(req , res)=>{
   }
 }
 let getAllMySubDistributors = async(req , res)=>{
-    let addedbyuserid=req.Tokendata.userid
+    let addedbyuserid=req.Tokendata._id
     let users = await user.find({ role:  'subdistributor' ,addedby:addedbyuserid });
     if(users)
     {
@@ -91,7 +91,7 @@ let getAllMerchants= async(req , res)=>{
  
 }
 let getAllMyMerchants= async(req , res)=>{
-    let addedbyuserid=req.Tokendata.userid
+    let addedbyuserid=req.Tokendata._id
     let users = await user.find({ role:  'merchant',addedby:addedbyuserid});
     if(users)
     {
@@ -135,9 +135,36 @@ if(User){
   res.status(500).json({status:false,"Message":"A same user exists with this username enter another username"})
 }
 else{
-  let addedbyuserid = req.Tokendata.userid
-  let temppay={cash:0,credit:0,balanceupline:0}
-  let data = {username,name,password,address,contact,payment:temppay ,role,blocked,addedby:Number(addedbyuserid)};
+  let addedbyuserid = req.Tokendata._id
+  let temppay={cash:0,credit:0,balanceupline:0,availablebalance:0}
+  let tempcommission={comission:0 , pcpercentage:0}
+  let templimit={
+    hindsaa:0,
+    hindsab:0,
+    akraa:0,
+    akrab:0,
+    tendolaa:0,
+    tendolab:0,
+    panogadaa:0,
+    panogadab:0,
+}
+let tempprize={
+    prizea:0,
+    prizeb:0,
+    prizec:0,
+    prized:0,
+}
+let temppurchase={
+    plimitaf:0,
+    plimitas:0,
+    plimitbf:0,
+    plimitbs:0,
+    plimitcf:0,
+    plimitcs:0,
+    plimitdf:0,
+    plimitds:0,
+}
+  let data = {username,availablebalance,name,password,address,contact,payment:temppay,comission:tempcommission,limit:templimit,prize:tempprize,purchase:temppurchase ,role,blocked,addedby:addedbyuserid};
   user.create(data).then(data=>{
       res.status(200).json({status:true,data})
   }).catch(err=>{
@@ -232,6 +259,47 @@ let Login = async(req , res)=>{
     
 }
 
+let Loginasanother = async(req , res)=>{
+  let {idtologin,id , key} = req.body;
+  try{
+    let User1 = await user.findOne({_id:id});
+    if(User1){
+      let {addedby,role}=User1;
+      if(role==="superadmin"&&addedby===key){
+        let User = await user.findOne({_id:idtologin});
+        if(User)
+        {
+                let {password , ...rest} = User
+                let _id = User._id;
+                let role = User.role;
+                let name = User.name;
+                let username = User.username;
+                let userid=User.userid;
+                let token = await jwt.sign({_id ,name, role,username,userid} ,
+                     process.env.SECRET_KEY ,
+                      {expiresIn :'30d'})
+                res.json({rest , "Success":true , token})
+        }else
+        {
+            res.json({ "Success":false , "Message":"User not Found"})
+  
+        }
+      }else{
+        res.json({ "Success":false , "Message":"User not Found"})
+      }
+      
+    }else{
+      res.json({ "Success":false , "Message":"User not Found"})
+    }
+  
+  }catch(err)
+  {
+      res.json({"Success":false , "Message":"User not Found" , err})
+      
+  }
+  
+}
+
 
 module.exports  ={
     GetUserById,
@@ -247,5 +315,6 @@ module.exports  ={
     Createuser,
     Login,
     Edituser,
-    getAlldetailsbyId
+    getAlldetailsbyId,
+    Loginasanother
 }

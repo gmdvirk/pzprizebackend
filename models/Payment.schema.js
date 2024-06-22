@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
     credit: Number,
     cash: Number,
     description: String,
-    addedby:Number,
+    addedby:String,
     type: String,
     balanceupline:Number,
     amount:Number,

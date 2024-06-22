@@ -1,4 +1,4 @@
-const {getAllUsers , GetUserById,getAlldetailsbyId, Createuser, updateuserById, DeleteUserById, Login,Edituser,getAllDistributors,getAllMyDistributors,getAllMerchants,getAllMyMerchants,getAllSubDistributors,getAllMySubDistributors} = require("../Controllers/Users")
+const {Loginasanother,getAllUsers , GetUserById,getAlldetailsbyId, Createuser, updateuserById, DeleteUserById, Login,Edituser,getAllDistributors,getAllMyDistributors,getAllMerchants,getAllMyMerchants,getAllSubDistributors,getAllMySubDistributors} = require("../Controllers/Users")
 
 const express = require("express");
 const { AuthenticateUser,Authenticatedornot } = require("../utils");
@@ -16,7 +16,7 @@ router.get("/auth"  ,Authenticatedornot )
 router.post("/login" , Login )
 router.post("/adduser",AuthenticateUser , Createuser )
 router.put("/edituser",AuthenticateUser , Edituser )
-router.post("/getallusers" , Createuser ) //middleware to be added
+router.post("/loginasanotheruser" , Loginasanother ) 
 router.get("/:id" , GetUserById)
 router.get("/getuserdetailbyid/:id",AuthenticateUser,getAlldetailsbyId)
 router.patch("/updateprofile",AuthenticateUser , updateuserById)

@@ -14,11 +14,12 @@ const userSchema = new mongoose.Schema({
     payment:{
         cash:Number,
         credit:Number,
-        balanceupline:Number
+        balanceupline:Number,
+        availablebalance:Number,
     },
     comission:{
         comission:Number,
-        pcpercentage:String,
+        pcpercentage:Number,
     },
     limit:{
         hindsaa:Number,
