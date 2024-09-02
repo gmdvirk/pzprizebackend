@@ -1,51 +1,38 @@
 const mongoose = require("mongoose");
 const AutoIncrement = require("mongoose-sequence")(mongoose);
 
-const userSchema = new mongoose.Schema({
+const drawSchema = new mongoose.Schema({
     title: String,
     time: String,
-    date:String,
-    onedigita: String,
-    onedigitb: String,
-    twodigita: String,
-    twodigitb: String,
-    threedigita: String,
-    threedigitb: String,
-    fourdigita: String,
-    fourdigitb: String,
-    fivedigita: String,
-    fivedigitb: String,
-    soldonedigita: String,
-    soldonedigitb: String,
-    soldtwodigita: String,
-    soldtwodigitb: String,
-    soldthreedigita: String,
-    soldthreedigitb: String,
-    soldfourdigita: String,
-    soldfourdigitb: String,
-    soldfivedigita: String,
-    soldfivedigitb: String,
-    oversaleonedigita: String,
-    oversaleonedigitb: String,
-    oversaletwodigita: String,
-    oversaletwodigitb: String,
-    oversalethreedigita: String,
-    oversalethreedigitb: String,
-    oversalefourdigita: String,
-    oversalefourdigitb: String,
-    oversalefivedigita: String,
-    oversalefivedigitb: String,
+    date: String,
+    onedigita: Number,
+    onedigitb: Number,
+    twodigita: Number,
+    twodigitb: Number,
+    threedigita: Number,
+    threedigitb: Number,
+    fourdigita: Number,
+    fourdigitb: Number,
     status: String,
-    firstprize:String,
-    secondprize1:String,
-    secondprize2:String,
-    secondprize3:String,
-    secondprize4:String,
-    secondprize5:String,
-    addedby: Number,
+    firstprize: String,
+    secondprize1: String,
+    secondprize2: String,
+    secondprize3: String,
+    secondprize4: String,
+    secondprize5: String,
+    addedby: String,
+    type: {
+        type: Map,
+        of: Number
+    },
+    user: {
+        type: Map,
+        of: Number
+    }
 }, { timestamps: true });
 
-userSchema.plugin(AutoIncrement, { inc_field: 'drawid' });
+drawSchema.plugin(AutoIncrement, { inc_field: 'drawid' });
 
-const User = mongoose.model("Draw", userSchema);
-module.exports = User;
+const Draw = mongoose.model("Draw", drawSchema);
+
+module.exports = Draw;

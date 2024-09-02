@@ -1,4 +1,4 @@
-const {getAllDraws,Createdraw,getAllActiveDraws,updatedrawById,activatedrawById,deactivatedrawById } = require("../Controllers/Draw")
+const {getAllDraws,getlasttendrawsmerchant,Createdraw,getAllActiveDraws,updatedrawById,getDrawfieldsvalue,activatedrawById,deactivatedrawById,getLastTenDraws } = require("../Controllers/Draw")
 const express = require("express");
 const { AuthenticateUser,Authenticatedornot } = require("../utils");
 
@@ -9,4 +9,7 @@ router.patch("/editdraw"  ,AuthenticateUser,  updatedrawById )
 router.patch("/activatedraw"  ,AuthenticateUser,  activatedrawById )
 router.patch("/deactivatedraw"  ,AuthenticateUser,  deactivatedrawById )
 router.get("/getallactivedraws"  ,AuthenticateUser,  getAllActiveDraws )
+router.get("/getlasttendraws"  ,AuthenticateUser,  getLastTenDraws )
+router.post("/getdrawfieldsvalue"  ,AuthenticateUser,  getDrawfieldsvalue )
+router.get("/getlasttendrawsmerchant"  ,AuthenticateUser,  getlasttendrawsmerchant )
 module.exports = router;

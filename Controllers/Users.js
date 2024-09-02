@@ -2,53 +2,100 @@
 const user = require("../models/Users.schema")
 const jwt = require("jsonwebtoken")
 let getAllUsers = async(req , res)=>{
-  if(req.Tokendata.role==="superadmin"){
+  try{if(req.Tokendata.role==="superadmin"){
     let users = await user.find({ role: { $ne: 'superadmin' } ,addedby:req.Tokendata._id});
     if(users)
     {
        res.status(200).json(users)
     }else
     {
-      res.status(404).json({"Message":"Error" , err:err})
+      res.status(404).json({"Message":"Error" })
     }
   }else{
     res.status(403).json({"Message":"You dont have access"})
   }
+}
+  catch(e){
+    res.status(403).json({"Message":"Internal server error",err:e})
+
+  }
  
 }
+let getadmindetail=async(req,res)=>{
+  try{if(req.Tokendata.role==="superadmin"){
+    let users = await user.find({ role: 'superadmin',_id:req.Tokendata._id});
+    if(users)
+    {
+       res.status(200).json(users[0])
+    }else
+    {
+      res.status(404).json({"Message":"Error" })
+    }
+  }else{
+    res.status(403).json({"Message":"You dont have access"})
+  }
+}
+  catch(e){
+    res.status(403).json({"Message":"Internal server error",err:e})
 
+  }
+}
 let getAllDistributors = async(req , res)=>{
-  if(req.Tokendata.role==="superadmin"){
+  try{if(req.Tokendata.role==="superadmin"){
     let users = await user.find({ role:  'distributor'  });
     if(users)
     {
        res.status(200).json(users)
     }else
     {
-      res.status(404).json({"Message":"Error" , err:err})
+      res.status(404).json({"Message":"Error"})
     }
   }else{
     res.status(403).json({"Message":"You dont have access"})
+  }}
+  catch(e){
+    res.status(403).json({"Message":"Internal server error",err:e})
+
   }
  
 }
+let getBalance=async(req,res)=>{
+  try{let id = req.Tokendata._id;
+    let users = await user.findOne({_id:id});
+    if(users)
+    {
+       res.status(200).json(users)
+    }else
+    {
+      res.status(404).json({"Message":"Not Found"})
+    }}
+    catch(err){
+      res.status(404).json({"Message":"Error" , err:err})
+
+    }
+}
 let getAllSubDistributors = async(req , res)=>{
-  if(req.Tokendata.role==="superadmin"){
+  try{if(req.Tokendata.role==="superadmin"){
     let users = await user.find({ role:  'subdistributor'  });
     if(users)
     {
        res.status(200).json(users)
     }else
     {
-      res.status(404).json({"Message":"Error" , err:err})
+      res.status(404).json({"Message":"Error"})
     }
   }else{
     res.status(403).json({"Message":"You dont have access"})
   }
+}
+  catch(e){
+    res.status(403).json({"Message":"Internal server error",err:e})
+
+  }
  
 }
 let getAllMyDistributors = async(req , res)=>{
-  if(req.Tokendata.role==="superadmin"){
+ try{ if(req.Tokendata.role==="superadmin"){
     let addedbyuserid=req.Tokendata.userid
     let users = await user.find({ role:  'distributor' ,addedby:addedbyuserid });
     if(users)
@@ -56,26 +103,36 @@ let getAllMyDistributors = async(req , res)=>{
        res.status(200).json(users)
     }else
     {
-      res.status(404).json({"Message":"Error" , err:err})
+      res.status(404).json({"Message":"Error"})
     }
   }else{
     res.status(403).json({"Message":"You dont have access"})
   }
 }
+  catch(e){
+    res.status(403).json({"Message":"Internal server error",err:e})
+
+  }
+}
 let getAllMySubDistributors = async(req , res)=>{
-    let addedbyuserid=req.Tokendata._id
+   try{ let addedbyuserid=req.Tokendata._id
     let users = await user.find({ role:  'subdistributor' ,addedby:addedbyuserid });
     if(users)
     {
        res.status(200).json(users)
     }else
     {
-      res.status(404).json({"Message":"Error" , err:err})
+      res.status(404).json({"Message":"Error" })
     }
  
 }
+catch(e){
+  res.status(403).json({"Message":"Internal server error",err:e})
+
+}
+}
 let getAllMerchants= async(req , res)=>{
-  if(req.Tokendata.role==="superadmin"){
+  try{if(req.Tokendata.role==="superadmin"){
     let addedbyuserid=req.Tokendata.userid
     let users = await user.find({ role:  'merchant' });
     if(users)
@@ -83,28 +140,38 @@ let getAllMerchants= async(req , res)=>{
        res.status(200).json(users)
     }else
     {
-      res.status(404).json({"Message":"Error" , err:err})
+      res.status(404).json({"Message":"Error" })
     }
   }else{
     res.status(403).json({"Message":"You dont have access"})
+  }}
+
+  catch(e){
+    res.status(403).json({"Message":"Internal server error",err:e})
+
   }
  
 }
 let getAllMyMerchants= async(req , res)=>{
-    let addedbyuserid=req.Tokendata._id
+    try{let addedbyuserid=req.Tokendata._id
     let users = await user.find({ role:  'merchant',addedby:addedbyuserid});
     if(users)
     {
        res.status(200).json(users)
     }else
     {
-      res.status(404).json({"Message":"Error" , err:err})
+      res.status(404).json({"Message":"Error" })
+    }
+  }
+    catch(e){
+      res.status(403).json({"Message":"Internal server error",err:e})
+  
     }
  
 }
 
 let GetUserById = async(req ,res)=>{
-    let id = req.params.id;
+    try{let id = req.params.id;
     let users = await user.findOne({_id:id});
     if(users)
     {
@@ -113,23 +180,102 @@ let GetUserById = async(req ,res)=>{
     {
       res.status(404).json({"Message":"Error" , err:err})
     }
-}
-let Edituser =async (req , res)=>{
-  let User=req.Tokendata
+  }
+    catch(e){
+      res.status(403).json({"Message":"Internal server error",err:e})
   
+    }
+}
+async function getAllUsersAddedBy(userId) {
+  const allUsers = [];
+  
+  async function findUsersAddedBy(currentUserId) {
+      const users = await user.find({ addedby: currentUserId }).exec();
+      if (users.length > 0) {
+          for (const user of users) {
+              allUsers.push(user);
+              await findUsersAddedBy(user.userid);
+          }
+      }
+  }
+
+  await findUsersAddedBy(userId);
+  return allUsers;
+}
+
+let Edituser =async (req , res)=>{
+  try{let User=req.Tokendata
   let data = req.body;
   let id = data._id;
-  let users = await user.findByIdAndUpdate(id , data);
+  let users = await user.findById(id);
   if(users)
   {
-    res.status(200).json({status:true,data:users})
+    if(users.purchase.plimitaf!==data.purchase.plimitaf|| users.purchase.plimitas !==data.purchase.plimitas || users.purchase.plimitbf !== data.purchase.plimitbf|| users.purchase.plimitbs !==data.purchase.plimitbs ||users.purchase.plimitcf !==data.purchase.plimitcf|| users.purchase.plimitcs !==data.purchase.plimitcs|| users.purchase.plimitdf !==data.purchase.plimitdf|| users.purchase.plimitds !==data.purchase.plimitds){
+      let allusers=await getAllUsersAddedBy(id)
+   
+      let users1 = await user.findByIdAndUpdate(id,data);
+      for (let i=0;i<allusers.length;i++){
+        let temp=await user.findByIdAndUpdate(allusers[i]._doc._id,{...allusers[i]._doc,purchase:data.purchase});
+
+      }
+      res.status(200).json({status:true,data:users1})
+    }else{
+      let users = await user.findByIdAndUpdate(id,data);
+      res.status(200).json({status:true,data:users})
+    }
+   
   }else
   {
     res.status(404).json({status:false,"Message":"Error" })
   }
 }
+  catch(e){
+    res.status(403).json({"Message":"Internal server error",err:e})
+
+  }
+}
+let Editadmin =async (req , res)=>{
+  try{let User=req.Tokendata
+  if(req.Tokendata.role==="superadmin"){
+    let data = req.body;
+    let id = data._id;
+    let users = await user.findById(id);
+    if(users)
+    {
+        let users1 = await user.findByIdAndUpdate(id,data);
+        res.status(200).json({status:true,data:users1})
+    }else
+    {
+      res.status(404).json({status:false,"Message":"Error" })
+    }
+  }
+}
+  catch(e){
+    res.status(403).json({"Message":"Internal server error",err:e})
+
+  }
+}
+let addadmin =async(req,res)=>{
+  try{let {username,name,password,address,contact,role,blocked } = req.body;
+  let key="123"
+  let User = await user.findOne({role});
+  if(User){
+    res.status(500).json({status:false,"Message":"A same user exists with this username enter another username"})
+  }else{
+    let addedbyuserid = "superadmin"
+    let data={key,username,name,password,address,contact,role,blocked,addedbyuserid}
+    user.create(data).then(data=>{
+      res.status(200).json({status:true,data})
+  }).catch(err=>{
+      res.status(500).json({status:false,"Message":"there was Some Error"})
+  })
+  }}catch(e){
+    res.status(500).json({status:false,"Message":"Internal server error"})
+  }
+}
 let Createuser =async (req , res)=>{
-  let {username,name,password,address,contact,role,blocked } = req.body;
+  try{let {username,name,password,address,contact,role,blocked } = req.body;
+  let key="123"
 let User = await user.findOne({username});
 if(User){
   res.status(500).json({status:false,"Message":"A same user exists with this username enter another username"})
@@ -164,17 +310,35 @@ let temppurchase={
     plimitdf:0,
     plimitds:0,
 }
-  let data = {username,availablebalance,name,password,address,contact,payment:temppay,comission:tempcommission,limit:templimit,prize:tempprize,purchase:temppurchase ,role,blocked,addedby:addedbyuserid};
+let tempuser=await user.findById(addedbyuserid)
+if(role==="merchant"){
+  let temparr=[...tempuser.addedby  ]
+  
+  temparr.push(addedbyuserid)
+  let data = {username,key,haddaloud:false,name,password,address,contact,payment:temppay,comission:tempcommission,limit:templimit,prize:tempprize,purchase:tempuser.purchase ,role,blocked,addedby:temparr};
   user.create(data).then(data=>{
       res.status(200).json({status:true,data})
   }).catch(err=>{
       res.status(500).json({status:false,"Message":"there was Some Error"})
   })
+}else{
+  let temparr=[...tempuser.addedby  ]
+  
+  temparr.push(addedbyuserid)
+  let data = {username,key,name,haddaloud:false,password,address,contact,payment:temppay,comission:tempcommission,limit:templimit,prize:tempprize,purchase:temppurchase ,role,blocked,addedby:temparr};
+  user.create(data).then(data=>{
+      res.status(200).json({status:true,data})
+  }).catch(err=>{
+      res.status(500).json({status:false,"Message":"there was Some Error"})
+  })
+  }
+}}catch(e){
+  res.status(500).json({status:false,"Message":"Internal server error"})
 }
 }
 
 let updateuserById = async(req ,res)=>{
-  let User=req.Tokendata
+  try{let User=req.Tokendata
     let id = User.id;
     let data = req.body;
     let users = await user.findByIdAndUpdate(id , data);
@@ -185,18 +349,52 @@ let updateuserById = async(req ,res)=>{
     {
       res.status(404).json({status:false,"Message":"Error"})
     }
+  }
+    catch(e){
+      res.status(403).json({"Message":"Internal server error",err:e})
+  
+    }
+}
+let changekey =async(req,res)=>{
+  try{let User=req.Tokendata
+  let id = User._id;
+
+  let users = await user.findById(id);
+  if(users)
+  {
+    let data = users;
+    if(data.key===req.body.oldkey&&req.body.newkey===req.body.confirmnewkey){
+      data.key=req.body.newkey
+      let usersnew = await user.findByIdAndUpdate(id,data);
+       res.status(200).json({status:true,data:usersnew})
+    }else{
+      res.status(404).json({status:false,"Message":"Ensure the old key is correct and new key and confirmed new key are same"})
+    }
+  }else
+  {
+    res.status(404).json({status:false,"Message":"Error"})
+  }
+}
+  catch(e){
+    res.status(403).json({"Message":"Internal server error",err:e})
+
+  }
 }
 
-
 let DeleteUserById =  async(req ,res)=>{
-    let id = req.params.id;
+    try{let id = req.params.id;
     let users = await user.findByIdAndDelete(id);
     if(users)
     {
        res.status(200).json(users)
     }else
     {
-      res.status(404).json({"Message":"Error" , err:err})
+      res.status(404).json({"Message":"Error"})
+    }
+  }
+    catch(e){
+      res.status(403).json({"Message":"Internal server error",err:e})
+  
     }
 }
 let getAlldetailsbyId = async (req, res) => {
@@ -214,6 +412,25 @@ let getAlldetailsbyId = async (req, res) => {
   }
 };
 
+let changepassword=async(req,res)=>{
+  try{let id=req.Tokendata._id
+  let data = req.body;
+  let users = await user.findById(id);
+  if(users&&users._doc.password===data.oldpassword)
+  {
+      let users1 = await user.findByIdAndUpdate(id,{...users._doc,password:data.password});
+      res.status(200).json({status:true,data:users1})
+   
+  }else
+  {
+    res.status(404).json({status:false,"Message":"Error" })
+  }
+}
+  catch(e){
+    res.status(403).json({"Message":"Internal server error",err:e})
+
+  }
+}
 
 let Login = async(req , res)=>{
     let {username , password} = req.body;
@@ -260,12 +477,13 @@ let Login = async(req , res)=>{
 }
 
 let Loginasanother = async(req , res)=>{
-  let {idtologin,id , key} = req.body;
+  let {idtologin,id } = req.body;
+  let key1=req.body.key
   try{
     let User1 = await user.findOne({_id:id});
     if(User1){
-      let {addedby,role}=User1;
-      if(role==="superadmin"&&addedby===key){
+      let {key,role}=User1;
+      if(role!=="merchant"&&key1===key){
         let User = await user.findOne({_id:idtologin});
         if(User)
         {
@@ -316,5 +534,11 @@ module.exports  ={
     Login,
     Edituser,
     getAlldetailsbyId,
-    Loginasanother
+    Loginasanother,
+    getBalance,
+    changekey,
+    changepassword,
+    Editadmin,
+    getadmindetail,
+    addadmin
 }

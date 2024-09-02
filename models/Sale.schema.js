@@ -4,9 +4,15 @@ const AutoIncrement = require("mongoose-sequence")(mongoose);
 const userSchema = new mongoose.Schema({
     drawid: String,
     salenumber: Number,
-    addedby:String,
-    f:Number,
-    s:Number,
+    addedby: [String],
+    sheetid:String,
+    type: String,
+    f: Number,
+    s: Number,
+    buyingdetail:[{from:String,f:Number,s:Number}],
+    bundle:String,
+    salecode: String,
+    sheetid: { type: String, default: '' } // Set default value for sheetid
 }, { timestamps: true });
 
 userSchema.plugin(AutoIncrement, { inc_field: 'saleid' });

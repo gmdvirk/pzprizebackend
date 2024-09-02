@@ -15,7 +15,6 @@ let getAllpaymentsbyID= async(req , res)=>{
       {
         res.status(404).json({"Message":"Error" })
       }
-   
   }
   let getMyPayments=async(req,res)=>{
     let id=req.Tokendata._id
@@ -53,12 +52,14 @@ let getAllpaymentsbyID= async(req , res)=>{
           cash = Number(last.cash) + Number(amount);
           credit = last.credit;
           balanceupline = last.balanceupline + Number(amount);
-          availablebalance= Number(cash)+Number(credit)
+          // availablebalance= Number(cash)+Number(credit)
+          availablebalance= Number(last.availablebalance)+Number(amount)
         } else if (type === "Withdraw") {
           cash = Number(last.cash) - Number(amount);
           credit = last.credit;
           balanceupline = last.balanceupline - Number(amount);
-          availablebalance= Number(cash)+Number(credit)
+          // availablebalance= Number(cash)+Number(credit)
+          availablebalance= Number(availablebalance)-Number(amount)
         }
       } else {
         cash = type === "Draw" ? amount : -amount;
@@ -66,14 +67,15 @@ let getAllpaymentsbyID= async(req , res)=>{
         availablebalance= Number(cash)+Number(credit)
       }
   
-      let data = { cash, credit, type, description, amount, customerid: id,availablebalance, addedby: Number(addedbyuserid), balanceupline };
+      let data = { cash, credit, type, description, amount, customerid: id,availablebalance, addedby: addedbyuserid, balanceupline };
       let paymentData = await payment.create([data], { session });
   
       let updatedUser = {
         payment: {
           cash: paymentData[0].cash,
           credit: paymentData[0].credit,
-          balanceupline: paymentData[0].balanceupline
+          balanceupline: paymentData[0].balanceupline,
+          availablebalance:data.availablebalance
         }
       };
   
@@ -115,26 +117,29 @@ let getAllpaymentsbyID= async(req , res)=>{
           credit = Number(last.credit) + Number(amount);
           cash = last.cash;
           balanceupline = last.balanceupline;
-          availablebalance= Number(cash)+Number(credit)
+          // availablebalance= Number(cash)+Number(credit)
+          availablebalance= Number(last.availablebalance)+Number(amount)
         } else if (type === "Withdraw") {
           credit = Number(last.credit) - Number(amount);
           cash = last.cash;
           balanceupline = last.balanceupline;
-          availablebalance= Number(cash)+Number(credit)
+          // availablebalance= Number(cash)+Number(credit)
+          availablebalance= Number(last.availablebalance)-Number(amount)
         }
       } else {
         credit = type === "Draw" ? amount : -amount;
         availablebalance= Number(cash)+Number(credit)
       }
   
-      let data = { cash, credit, type, amount,availablebalance, description, customerid: id, addedby: Number(addedbyuserid), balanceupline };
+      let data = { cash, credit, type, amount,availablebalance, description, customerid: id, addedby: addedbyuserid, balanceupline };
       let paymentData = await payment.create([data], { session });
   
       let updatedUser = {
         payment: {
-          cash: paymentData[0].cash,
-          credit: paymentData[0].credit,
-          balanceupline: paymentData[0].balanceupline
+          cash:cash,
+          credit:credit,
+          balanceupline:balanceupline,
+          availablebalance:availablebalance
         }
       };
   
@@ -168,7 +173,6 @@ let getAllpaymentsbyID= async(req , res)=>{
         if (!addedByUser) {
             throw new Error('Added by user not found');
         }
-        
         // Check if the adding user's available balance is sufficient
         if (type==="Draw" && Number(addedByUser.payment.availablebalance) < Number(amount)) {
             throw new Error('Insufficient balance for the user adding the payment');
@@ -187,12 +191,14 @@ let getAllpaymentsbyID= async(req , res)=>{
                 cash = Number(last.cash) + Number(amount);
                 credit = Number(last.credit);
                 balanceupline = Number(last.balanceupline) + Number(amount);
-                availablebalance = cash + credit;
+                // availablebalance = cash + credit;
+                availablebalance = Number(last.availablebalance) + Number(amount);
             } else if (type === "Withdraw") {
                 cash = Number(last.cash) - Number(amount);
                 credit = Number(last.credit);
                 balanceupline = Number(last.balanceupline) - Number(amount);
-                availablebalance = cash + credit;
+                // availablebalance = cash + credit;
+                availablebalance = Number(last.availablebalance) - Number(amount);
             }
         } else {
             cash = type === "Draw" ? Number(amount) : -Number(amount);
@@ -206,7 +212,8 @@ let getAllpaymentsbyID= async(req , res)=>{
             payment: {
                 cash: paymentData[0].cash,
                 credit: paymentData[0].credit,
-                balanceupline: paymentData[0].balanceupline
+                balanceupline: paymentData[0].balanceupline,
+                availablebalance:data.availablebalance
             }
         };
   
@@ -215,9 +222,13 @@ let getAllpaymentsbyID= async(req , res)=>{
             throw new Error('Error updating user');
         }
 
+        
         // Update the available balance of the user who added the payment
         if(type==="Draw")
-        {addedByUser.payment.availablebalance = Number(addedByUser.payment.availablebalance) - Number(amount);}
+        {
+          addedByUser.payment.availablebalance = Number(addedByUser.payment.availablebalance) - Number(amount);
+
+        }
         else{
           addedByUser.payment.availablebalance = Number(addedByUser.payment.availablebalance) + Number(amount);
         }
@@ -241,7 +252,7 @@ let Addcreditpaymentbyditributor = async (req, res) => {
   try {
     let { type, description, amount, id } = req.body;
     let addedbyuserid = req.Tokendata._id;
-      
+     
     // Fetch the user who is adding the payment
     let addedByUser = await user.findOne({ _id: addedbyuserid }).session(session);
     if (!addedByUser) {
@@ -258,6 +269,7 @@ let Addcreditpaymentbyditributor = async (req, res) => {
       throw new Error('User not found');
     }
 
+    
     let credit = 0, cash = 0, balanceupline = 0,availablebalance = 0 ;
     let last = users1.payment;
 
@@ -266,26 +278,29 @@ let Addcreditpaymentbyditributor = async (req, res) => {
         credit = Number(last.credit) + Number(amount);
         cash = last.cash;
         balanceupline = last.balanceupline;
-        availablebalance= Number(cash)+Number(credit)
+        // availablebalance= Number(cash)+Number(credit)
+        availablebalance = Number(last.availablebalance) + Number(amount);
       } else if (type === "Withdraw") {
         credit = Number(last.credit) - Number(amount);
         cash = last.cash;
         balanceupline = last.balanceupline;
-        availablebalance= Number(cash)+Number(credit)
+        // availablebalance= Number(cash)+Number(credit)
+        availablebalance = Number(last.availablebalance) - Number(amount);
       }
     } else {
       credit = type === "Draw" ? amount : -amount;
       availablebalance= Number(cash)+Number(credit)
     }
+    
 
-    let data = { cash, credit, type, amount,availablebalance, description, customerid: id, addedby: Number(addedbyuserid), balanceupline };
+    let data = { cash, credit, type, amount,availablebalance, description, customerid: id, addedby: addedbyuserid, balanceupline };
     let paymentData = await payment.create([data], { session });
-
     let updatedUser = {
       payment: {
         cash: paymentData[0].cash,
         credit: paymentData[0].credit,
-        balanceupline: paymentData[0].balanceupline
+        balanceupline: paymentData[0].balanceupline,
+        availablebalance:data.availablebalance
       }
     };
 
