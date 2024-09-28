@@ -68,7 +68,7 @@ let getLastTenDraws = async (req, res) => {
   try {
       // Fetch the last 10 draws sorted by a date field in descending order
       // let draws = await draw.find({}).sort({ createdAt: -1 }).limit(10);
-      let draws = await draw.find({}, { title: 1,_id:1, date: 1 }).sort({ createdAt: -1 }).limit(10);
+      let draws = await draw.find({}, { title: 1,_id:1, date: 1,time:1,status:1 }).sort({ createdAt: -1 }).limit(10);
       if (draws.length > 0) {
           res.status(200).json(draws);
       } else {
@@ -81,7 +81,7 @@ let getLastTenDraws = async (req, res) => {
 let getlasttendrawsmerchant= async (req, res) => {
 
   try {
-      let draws = await draw.find({}, { title: 1,_id:1, date: 1 }).sort({ createdAt: -1 }).limit(10);
+      let draws = await draw.find({}, { title: 1,_id:1, date: 1,time:1,status:1  }).sort({ createdAt: -1 }).limit(10);
       if (draws.length > 0) {
         let sheets=await sheet.find({addedby:req.Tokendata._id})
           res.status(200).json({draws,sheets});

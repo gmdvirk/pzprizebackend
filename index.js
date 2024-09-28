@@ -36,7 +36,7 @@ app.use(express.static(path.join(__dirname, './client/build')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, './client/build', 'index.html'));
 });
-mongoose.connect("mongodb+srv://i211130:AllahG92@cluster0.t4fkgpc.mongodb.net/prizetest")
+mongoose.connect("mongodb://127.0.0.1:27017/pzprizedata")
     .then(() => {
         console.log("Connected");
     })

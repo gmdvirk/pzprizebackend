@@ -75,11 +75,10 @@ let getSalesBySheet = async (req, res) => {
         // Fetch sales by sheet ID
         
         if(report==="combined"){
-            const sales = await sale.find({ sheetid: sheet });
-            if (!sales.length) {
-                return res.status(200).json([]);
-            }
-            res.status(200).json(sales);
+            const sales = await sale.find({type:"sale",sheetid: sheet });
+            const oversales = await sale.find({type:"oversale", sheetid: sheet });
+            
+            res.status(200).json({sales,oversales});
       }
       else if (report==="generalsale"){
         const sales = await sale.find({type:"sale", sheetid: sheet });
@@ -740,8 +739,11 @@ const convertObjectToArray = (obj) => {
         let drawinfo=await draw.find({date:drawId})
         let users=await user.find({_id:id});
         let totalsale=[]
+        let combinedtotalsale=[]
         let typeofsale="sale"
+        let combineddrawarrtosend=null
         let allsales =[]
+        let combinedsale=[]
         if(req.body.saletype==="sale"){
             allsales=await sale.find({type:"sale",addedby:id,drawid:drawinfo[0]._id})
         }
@@ -749,7 +751,24 @@ const convertObjectToArray = (obj) => {
             allsales=await sale.find({type:"oversale",addedby:id,drawid:drawinfo[0]._id})
         }
         if(req.body.saletype==="combined"){
-            allsales=await sale.find({addedby:id,drawid:drawinfo[0]._id})
+            combinedsale=await sale.find({type:"sale",addedby:id,drawid:drawinfo[0]._id})
+            allsales=await sale.find({type:"oversale",addedby:id,drawid:drawinfo[0]._id})
+            for (let singleuser of users){
+                // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
+                let sales= combinedsale.filter((obj)=>obj.addedby.includes(singleuser._id))
+                combinedtotalsale=[...totalsale,...sales]
+            }
+            let alldraws=[]
+        let drawtosend={}
+        for (let singlesale of combinedtotalsale){
+            if(alldraws.includes(singlesale.bundle)){
+                drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+            }else{
+                alldraws.push(singlesale.bundle)
+                drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+            }
+        }
+         combineddrawarrtosend=convertObjectToArray(drawtosend);
         }
        
         for (let singleuser of users){
@@ -757,6 +776,7 @@ const convertObjectToArray = (obj) => {
             let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
             totalsale=[...totalsale,...sales]
         }
+       
         let alldraws=[]
         let drawtosend={}
         for (let singlesale of totalsale){
@@ -768,7 +788,7 @@ const convertObjectToArray = (obj) => {
             }
         }
        let drawarrtosend=convertObjectToArray(drawtosend);
-      res.status(200).json(drawarrtosend);
+      res.status(200).json({drawarrtosend,combineddrawarrtosend});
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });
     }
@@ -1482,7 +1502,7 @@ else{
             let drawid=req.body.date
             const users=await sheet.find({drawid:drawid,addedby:req.Tokendata._id})
                 const sales = await sale.find({
-                    bundle: bundle,
+                    // bundle: bundle,
                     drawid:drawid,
                     addedby:req.Tokendata._id
                 });
@@ -1498,28 +1518,62 @@ else{
                 res.status(500).json({ message: "Internal server error" });
             }
   }
-  let getSearchBundleDistributor= async (req, res) => {
+  let getSearchBundleMerchantfordistributor= async (drawid,addedby,user) => {
     try {
-        let bundle=req.body.bundle;
-        const users=await user.find({role:"merchant",addedby:req.Tokendata._id})
-            let drawid=req.body.date
+        const users=await sheet.find({drawid:drawid,addedby:addedby})
             const sales = await sale.find({
-                bundle: bundle,
+                // bundle: bundle,
                 drawid:drawid,
+                addedby:addedby
             });
             let data=[]
             for (let i=0;i<users.length;i++){
-                let temparr=sales.filter((obj)=>obj.addedby.includes(users[i]._id))
+                let temparr=sales.filter((obj)=>obj.sheetid==users[i]._id)
                 if(temparr.length>0){
-                    data.push({saledata:temparr,name:users[i].name,username:users[i].username})
+                    data.push({saledata:temparr,name:users[i].sheetname,username:user.username})
                 }
-                
             }
-            res.status(200).json(data);
-          
+            return data;
         } catch (error) {
-            res.status(500).json({ message: "Internal server error" });
+            return []
         }
+}
+  let getSearchBundleDistributor= async (req, res) => {
+    // try {
+    //     let bundle=req.body.bundle;
+    //     const users=await user.find({role:"merchant",addedby:req.Tokendata._id})
+    //         let drawid=req.body.date
+    //         const sales = await sale.find({
+    //             bundle: bundle,
+    //             drawid:drawid,
+    //         });
+    //         let data=[]
+    //         for (let i=0;i<users.length;i++){
+    //             let temparr=sales.filter((obj)=>obj.addedby.includes(users[i]._id))
+    //             if(temparr.length>0){
+    //                 data.push({saledata:temparr,name:users[i].name,username:users[i].username})
+    //             }
+    //         }
+    //         res.status(200).json(data);
+          
+    //     } catch (error) {
+    //         res.status(500).json({ message: "Internal server error" });
+    //     }
+        try {
+            const users=await user.find({role:"merchant",addedby:req.Tokendata._id})
+                let drawid=req.body.date
+                let data=[]
+                for (let i=0;i<users.length;i++){
+                    let temparr=await getSearchBundleMerchantfordistributor(drawid,users[i]._id,users[i])
+                    if(temparr.length>0){
+                        data.push(temparr)
+                    }
+                }
+                res.status(200).json(data);
+              
+            } catch (error) {
+                res.status(500).json({ message: "Internal server error" });
+            }
   }
   let getSearchBundleAdmin= async (req, res) => {
  try {

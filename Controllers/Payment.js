@@ -59,7 +59,7 @@ let getAllpaymentsbyID= async(req , res)=>{
           credit = last.credit;
           balanceupline = last.balanceupline - Number(amount);
           // availablebalance= Number(cash)+Number(credit)
-          availablebalance= Number(availablebalance)-Number(amount)
+          availablebalance= Number(last.availablebalance)-Number(amount)
         }
       } else {
         cash = type === "Draw" ? amount : -amount;

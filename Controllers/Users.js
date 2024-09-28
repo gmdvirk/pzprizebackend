@@ -274,7 +274,7 @@ let addadmin =async(req,res)=>{
   }
 }
 let Createuser =async (req , res)=>{
-  try{let {username,name,password,address,contact,role,blocked } = req.body;
+  try{let {username,name,password,address,contact,role,blocked,comission, pcpercentage} = req.body;
   let key="123"
 let User = await user.findOne({username});
 if(User){
@@ -283,7 +283,7 @@ if(User){
 else{
   let addedbyuserid = req.Tokendata._id
   let temppay={cash:0,credit:0,balanceupline:0,availablebalance:0}
-  let tempcommission={comission:0 , pcpercentage:0}
+  let tempcommission={comission:comission , pcpercentage:pcpercentage}
   let templimit={
     hindsaa:0,
     hindsab:0,
@@ -295,10 +295,10 @@ else{
     panogadab:0,
 }
 let tempprize={
-    prizea:0,
-    prizeb:0,
-    prizec:0,
-    prized:0,
+    prizea:7,
+    prizeb:70,
+    prizec:700,
+    prized:5000,
 }
 let temppurchase={
     plimitaf:0,
@@ -454,23 +454,23 @@ let Login = async(req , res)=>{
                 res.json({rest , "Success":true , token})
             }else
             {
-                res.json({ "Success":false , "Message":"Invalid password"})
+                res.status(200).json({ "Success":false , "Message":"Invalid password"})
 
             }
           }
           else{
-            res.json({ "Success":false , "Message":"Your account has been blocked"})
+            res.status(200).json({ "Success":false , "Message":"Your account has been blocked"})
 
           }
             
         }else
         {
-            res.json({ "Success":false , "Message":"User not Found"})
+            res.status(200).json({ "Success":false , "Message":"Username not Found"})
 
         }
     }catch(err)
     {
-        res.json({"Success":false , "Message":"User not Found" , err})
+        res.status(200).json({"Success":false , "Message":"User not Found" , err})
         
     }
     

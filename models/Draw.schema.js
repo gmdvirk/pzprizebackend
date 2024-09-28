@@ -28,6 +28,10 @@ const drawSchema = new mongoose.Schema({
     user: {
         type: Map,
         of: Number
+    },
+    sms: {
+        type: Map,
+        of: Number
     }
 }, { timestamps: true });
 

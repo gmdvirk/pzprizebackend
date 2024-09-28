@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     balanceupline:Number,
     amount:Number,
+    availablebalance:Number,
     customerid:String
 }, { timestamps: true });
 
