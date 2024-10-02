@@ -31,67 +31,19 @@ app.use("/report", Reportrouter);
 //     res.json({ "Message": "Hello" });
 // });
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, './client/build')));
+// app.use(express.static(path.join(__dirname, './client/build')));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, './client/build', 'index.html'));
 });
-mongoose.connect("mongodb://127.0.0.1:27017/pzprizedata")
+mongoose.connect("mongodb://127.0.0.1:27017,localhost:27018,localhost:27019/pzprizedata?replicaSet=rs1")
     .then(() => {
-        console.log("Connected");
+        console.log("Connected to replica set");
     })
     .catch(err => {
-        console.log(err);
-    });
-// WebSocket connection handler
-wss.on("connection", (ws) => {
-    console.log("New client connected");
-
-    ws.on("message", async (message) => {
-        try {
-            const { token, drawId } = JSON.parse(message);
-
-            // Authenticate user
-            const user = await AuthenticateUser(token);
-            if (!user) {
-                ws.send(JSON.stringify({ status: "error", message: "Authentication failed" }));
-                return;
-            }
-
-            // Fetch draw by ID
-            const draw = await getDrawById(drawId);
-            if (!draw) {
-                ws.send(JSON.stringify({ status: "error", message: "Draw not found" }));
-                return;
-            }
-
-            ws.send(JSON.stringify({ status: "success", data: draw }));
-
-        } catch (error) {
-            console.error("Error processing message:", error);
-            ws.send(JSON.stringify({ status: "error", message: "An error occurred while processing your request" }));
-        }
+        console.log("Error: ", err);
     });
 
-    ws.on("close", () => {
-        console.log("Client disconnected");
-    });
-
-    // Handle ping/pong to keep connection alive
-    ws.isAlive = true;
-    ws.on('pong', () => ws.isAlive = true);
-
-    const interval = setInterval(() => {
-        wss.clients.forEach(client => {
-            if (!client.isAlive) return client.terminate();
-
-            client.isAlive = false;
-            client.ping();
-        });
-    }, 30000);
-
-    ws.on('close', () => clearInterval(interval));
-});
 
 
 const PORT = process.env.PORT || 3001;

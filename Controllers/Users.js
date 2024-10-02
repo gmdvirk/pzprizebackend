@@ -94,43 +94,93 @@ let getAllSubDistributors = async(req , res)=>{
   }
  
 }
-let getAllMyDistributors = async(req , res)=>{
- try{ if(req.Tokendata.role==="superadmin"){
-    let addedbyuserid=req.Tokendata.userid
-    let users = await user.find({ role:  'distributor' ,addedby:addedbyuserid });
-    if(users)
-    {
-       res.status(200).json(users)
-    }else
-    {
-      res.status(404).json({"Message":"Error"})
-    }
-  }else{
-    res.status(403).json({"Message":"You dont have access"})
-  }
-}
-  catch(e){
-    res.status(403).json({"Message":"Internal server error",err:e})
+let getAllMyDistributors = async(req, res) => {
+  try {
+    if (req.Tokendata.role === "superadmin") {
+      let addedbyuserid = req.Tokendata._id; // Assuming you meant _id instead of userid
 
-  }
-}
-let getAllMySubDistributors = async(req , res)=>{
-   try{ let addedbyuserid=req.Tokendata._id
-    let users = await user.find({ role:  'subdistributor' ,addedby:addedbyuserid });
-    if(users)
-    {
-       res.status(200).json(users)
-    }else
-    {
-      res.status(404).json({"Message":"Error" })
+      // Find users with role 'distributor' and where the last element of addedby array matches addedbyuserid
+      let users = await user.find({
+        role: 'distributor',
+        addedby: { $exists: true, $ne: [] },
+        $expr: {
+          $eq: [{ $arrayElemAt: ["$addedby", -1] }, addedbyuserid]
+        }
+      });
+
+      if (users && users.length > 0) {
+        res.status(200).json(users);
+      } else {
+        res.status(404).json({"Message": "No distributors found"});
+      }
+    } else {
+      res.status(403).json({"Message": "You don't have access"});
     }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({"Message": "Internal server error", err: e.message});
+  }
+};
+// let getAllMyDistributors = async(req , res)=>{
+//  try{ if(req.Tokendata.role==="superadmin"){
+//     let addedbyuserid=req.Tokendata.userid
+//     let users = await user.find({ role:  'distributor' ,addedby:addedbyuserid });
+//     if(users)
+//     {
+//        res.status(200).json(users)
+//     }else
+//     {
+//       res.status(404).json({"Message":"Error"})
+//     }
+//   }else{
+//     res.status(403).json({"Message":"You dont have access"})
+//   }
+// }
+//   catch(e){
+//     res.status(403).json({"Message":"Internal server error",err:e})
+
+//   }
+// }
+// let getAllMySubDistributors = async(req , res)=>{
+//    try{ let addedbyuserid=req.Tokendata._id
+//     let users = await user.find({ role:  'subdistributor' ,addedby:addedbyuserid });
+//     if(users)
+//     {
+//        res.status(200).json(users)
+//     }else
+//     {
+//       res.status(404).json({"Message":"Error" })
+//     }
  
-}
-catch(e){
-  res.status(403).json({"Message":"Internal server error",err:e})
+// }
+// catch(e){
+//   res.status(403).json({"Message":"Internal server error",err:e})
 
-}
-}
+// }
+// }
+let getAllMySubDistributors = async(req, res) => {
+  try {
+    let addedbyuserid = req.Tokendata._id;
+    
+    // Find users with role 'subdistributor' and where the last element of addedby array matches addedbyuserid
+    let users = await user.find({
+      role: 'subdistributor',
+      addedby: { $exists: true, $ne: [] },
+      $expr: {
+        $eq: [{ $arrayElemAt: ["$addedby", -1] }, addedbyuserid]
+      }
+    });
+
+    if (users && users.length > 0) {
+      res.status(200).json(users);
+    } else {
+      res.status(404).json({"Message": "No subdistributors found"});
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({"Message": "Internal server error", err: e.message});
+  }
+};
 let getAllMerchants= async(req , res)=>{
   try{if(req.Tokendata.role==="superadmin"){
     let addedbyuserid=req.Tokendata.userid
@@ -152,24 +202,46 @@ let getAllMerchants= async(req , res)=>{
   }
  
 }
-let getAllMyMerchants= async(req , res)=>{
-    try{let addedbyuserid=req.Tokendata._id
-    let users = await user.find({ role:  'merchant',addedby:addedbyuserid});
-    if(users)
-    {
-       res.status(200).json(users)
-    }else
-    {
-      res.status(404).json({"Message":"Error" })
-    }
-  }
-    catch(e){
-      res.status(403).json({"Message":"Internal server error",err:e})
+// let getAllMyMerchants= async(req , res)=>{
+//     try{let addedbyuserid=req.Tokendata._id
+//     let users = await user.find({ role:  'merchant',addedby:addedbyuserid});
+//     if(users)
+//     {
+//        res.status(200).json(users)
+//     }else
+//     {
+//       res.status(404).json({"Message":"Error" })
+//     }
+//   }
+//     catch(e){
+//       res.status(403).json({"Message":"Internal server error",err:e})
   
-    }
+//     }
  
-}
+// }
+let getAllMyMerchants = async(req, res) => {
+  try {
+    let addedbyuserid = req.Tokendata._id;
+    
+    // Find users with role 'merchant' and where the last element of addedby array matches addedbyuserid
+    let users = await user.find({
+      role: 'merchant',
+      addedby: { $exists: true, $ne: [] },
+      $expr: {
+        $eq: [{ $arrayElemAt: ["$addedby", -1] }, addedbyuserid]
+      }
+    });
 
+    if (users && users.length > 0) {
+      res.status(200).json(users);
+    } else {
+      res.status(404).json({"Message": "No merchants found"});
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({"Message": "Internal server error", err: e.message});
+  }
+};
 let GetUserById = async(req ,res)=>{
     try{let id = req.params.id;
     let users = await user.findOne({_id:id});
@@ -433,8 +505,17 @@ let changepassword=async(req,res)=>{
 }
 
 let Login = async(req , res)=>{
-    let {username , password} = req.body;
+    let {username , password,captchaValue} = req.body;
+
+  // Verify if the captchaValue (token) exists
+  if (!captchaValue) {
+    return res.status(400).json({ success: false, message: 'Please complete the reCAPTCHA.' });
+  }
     try{
+      const verificationURL = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${captchaValue}`;
+      const response = await fetch(verificationURL, { method: 'POST' });
+      const captchaResult = await response.json();
+      if (captchaResult.success) {
         let User = await user.findOne({username});
         if(User)
         {
@@ -467,6 +548,10 @@ let Login = async(req , res)=>{
         {
             res.status(200).json({ "Success":false , "Message":"Username not Found"})
 
+        }
+      }
+        else {
+          return res.status(400).json({ success: false, message: 'CAPTCHA validation failed. Please try again.' });
         }
     }catch(err)
     {

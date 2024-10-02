@@ -6,14 +6,21 @@ const jwt = require("jsonwebtoken")
 const mongoose = require('mongoose');
 
 let DeleteMultipleSales = async (req, res) => {
- 
+
         const saleIds = req.body.saleIds; // Expecting an array of sale IDs
         const userId = req.Tokendata._id;
+        const drawidtodel=req.body.saleIds[0].drawid;
 
         const session = await mongoose.startSession();
         session.startTransaction();
 
         try {
+          const drawdetail = await draw.find({ _id:drawidtodel}).session(session);
+          if( drawdetail.status !== "active" ){
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ status: false, "Message": "Draw is not activated" });
+          }
             // Retrieve the sales to be deleted
             const salesToDelete = await sale.find({ _id: { $in: saleIds } }).session(session);
 
@@ -364,6 +371,12 @@ let getMySaleDetail=async(req,res)=>{
   
         let allSales = [];
 let smsnumber =1
+let activedrawornot = await draw.findOne({ _id:salesArray[0].drawid }).session(session);
+if( activedrawornot.status !== "active" ){
+  await session.abortTransaction();
+  session.endSession();
+  return res.status(404).json({ status: false, "Message": "Draw is not activated" });
+}
         for (let sale of salesArray) {
           let { bundle,drawid, type, salenumber, f, s, salecode } = sale;
           let f1=f,s1=s
@@ -618,6 +631,11 @@ let buyingdetail=[{from:"me",f:0,s:0},{from:"notme",f:0,s:0}]
                    session.endSession();
                    return res.status(400).json({ status: false, "Message": "Cannot execute sale. The draw time has passed." });
                }
+          if( users.status !== "active" ){
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ status: false, "Message": "Draw is not activated" });
+          }
                 let numbertoadd1 = "";
                 let numbertoadd2 = "";
                 let userstoadd1 = "";
