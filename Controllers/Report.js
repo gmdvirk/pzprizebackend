@@ -1635,6 +1635,7 @@ else{
         grandTotal: grandTotal.toFixed(2),
         safitotal: safitotal.toFixed(2),
         nettotal: nettotal.toFixed(2),
+        role:user.role,
         id: user._id,
       });
     });
@@ -1646,64 +1647,33 @@ else{
     session.startTransaction();
     try {
       let drawId = req.body.date;
-      let drawinfo = await draw.find({ date: drawId });
-      if(!drawinfo[0].firstprize || drawinfo[0].firstprize===""){
+      let drawinfo = await draw.find({ date: drawId }).session(session);
+      if (!drawinfo[0] || !drawinfo[0].firstprize || drawinfo[0].firstprize === "") {
         await session.abortTransaction();
         session.endSession();
-        res.status(200).json({ message: "Draw not posted yet" });
+        return res.status(200).json({ message: "Draw not posted yet" });
       }
-      else{
-        let distributorusers = await user.find({ role: "distributor" });
-      
-        let majorsalesreport = [];
-        let allsales = await sale.find({ type: "sale", drawid: drawinfo[0]._id });
-        for (let singledistributor of distributorusers) {
-          let userid = singledistributor._id;
-          let users = await getAllUsersAddedBy(userid);
-          let totalsale = [];
-          for (let singleuser of users) {
-            let sales = allsales.filter((obj) =>
-              obj.addedby.includes(singleuser._id)
-            );
-            totalsale = [...totalsale, ...sales];
+  
+      let distributorusers1 = await user.find({}).session(session);
+      let distributorusers=distributorusers1.filter((obj)=>obj.role !=="superadmin")
+      let majorsalesreport = [];
+      let allsales = await sale.find({ type: "sale", drawid: drawinfo[0]._id }).session(session);
+      for (let singledistributor of distributorusers) {
+        let userid = singledistributor._id;
+        // let users = await getAllUsersAddedBy(userid);
+        let users = distributorusers.filter((obj)=> obj.addedby.includes(singledistributor._id))
+        users.push(singledistributor)
+        let totalsale = allsales.filter((obj) => users.some(user => obj.addedby.includes(user._id)));
+        let drawtosend = totalsale.reduce((acc, singlesale) => {
+          if (!acc[singlesale.bundle]) {
+            acc[singlesale.bundle] = { bundle: singlesale.bundle, f: 0, s: 0 };
           }
-          let alldraws = [];
-          let drawtosend = {};
-          for (let singlesale of totalsale) {
-            if (alldraws.includes(singlesale.bundle)) {
-              drawtosend[singlesale.bundle] = {
-                bundle: singlesale.bundle,
-                f: Number(drawtosend[singlesale.bundle].f) + singlesale.f,
-                s: Number(drawtosend[singlesale.bundle].s) + singlesale.s,
-              };
-            } else {
-              alldraws.push(singlesale.bundle);
-              drawtosend[singlesale.bundle] = {
-                bundle: singlesale.bundle,
-                f: singlesale.f,
-                s: singlesale.s,
-              };
-            }
-          }
-          let drawarrtosend = convertObjectToArray(drawtosend);
-          let obj = {
-            secondprize1: drawinfo[0].secondprize1,
-            secondprize2: drawinfo[0].secondprize2,
-            secondprize3: drawinfo[0].secondprize3,
-            secondprize4: drawinfo[0].secondprize4,
-            secondprize5: drawinfo[0].secondprize5,
-            firstprize: drawinfo[0].firstprize,
-          };
-          majorsalesreport.push({
-            drawarrtosend,
-            comission: singledistributor.comission,
-            prize: gettheprizecalculation(drawarrtosend, obj, singledistributor),
-            user: singledistributor,
-          });
-        }
-    
-        const tempobj = {
-          majorsalesreport,
+          acc[singlesale.bundle].f += singlesale.f;
+          acc[singlesale.bundle].s += singlesale.s;
+          return acc;
+        }, {});
+        let drawarrtosend = Object.values(drawtosend);
+        let obj = {
           secondprize1: drawinfo[0].secondprize1,
           secondprize2: drawinfo[0].secondprize2,
           secondprize3: drawinfo[0].secondprize3,
@@ -1711,37 +1681,46 @@ else{
           secondprize5: drawinfo[0].secondprize5,
           firstprize: drawinfo[0].firstprize,
         };
-        let calculatedData = calculate(tempobj);
-    
-        // Use Promise.all with map to ensure all asynchronous operations complete before committing the transaction
-        await Promise.all(
-          calculatedData.map(async (obj) => {
-            console.log(obj);
-            let User = await user.findOne({ _id: obj.id }).session(session);
-            // Update the user's balance or other fields as needed
-            if(User.role==="merchant"){
-  
-              User.payment.balanceupline -= (Number(obj.grandTotal)-Number(obj.safitotal));
-            }else{
-              User.payment.balanceupline -= Number(obj.nettotal);
-            }
-           
-            await User.save({ session });
-          })
-        );
-    
-        await session.commitTransaction();
-        session.endSession();
-        res.status(200).json({ message: "Done" });
+        majorsalesreport.push({
+          drawarrtosend,
+          comission: singledistributor.comission,
+          prize: gettheprizecalculation(drawarrtosend, obj, singledistributor),
+          user: singledistributor,
+        });
       }
-     
+      const tempobj = {
+        majorsalesreport,
+        secondprize1: drawinfo[0].secondprize1,
+        secondprize2: drawinfo[0].secondprize2,
+        secondprize3: drawinfo[0].secondprize3,
+        secondprize4: drawinfo[0].secondprize4,
+        secondprize5: drawinfo[0].secondprize5,
+        firstprize: drawinfo[0].firstprize,
+      };
+      let calculatedData = calculate(tempobj);
+      // Process users sequentially
+      for (const obj of calculatedData) {
+        let User = await user.findOne({ _id: obj.id }).session(session);
+        if (!User) {
+          throw new Error(`User not found: ${obj.id}`);
+        }
+        if (User.role === "merchant") {
+          User.payment.balanceupline = Number(User.payment.balanceupline) - (Number(obj.grandTotal) - Number(obj.safitotal));
+        } else {
+          User.payment.balanceupline = Number(User.payment.balanceupline)-Number(obj.nettotal);
+        }
+        await User.save({ session });
+      }
+      await session.commitTransaction();
+      session.endSession();
+      res.status(200).json({ message: "Done" });
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
-      res.status(500).json({ message: "Internal server error" });
+      console.error("Error in getBalanceUpdated:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
     }
   };
-  
 module.exports = {
     Addsheetmerchant,
     getSheetsByDate,

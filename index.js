@@ -36,7 +36,7 @@ app.use("/report", Reportrouter);
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, './client/build', 'index.html'));
 });
-mongoose.connect("mongodb://127.0.0.1:27017,localhost:27018,localhost:27019/pzprizedata?replicaSet=rs1")
+mongoose.connect("mongodb://127.0.0.1:27018,127.0.0.1:27019,127.0.0.1:27020/pzprizedata?replicaSet=rs1")
     .then(() => {
         console.log("Connected to replica set");
     })

@@ -1,4 +1,4 @@
-const {Addsale,getMySaleDetail,DeleteSales,Addmultiplesale,
+const {Addsale,getMySaleDetail,Addmultiplesale,
     addsheet,
     getAllSheets,
     getSalesofaSheet,

@@ -50,7 +50,7 @@ let getAllActiveDraws = async (req, res) => {
           status: 'active',
           $or: [
               { date: { $gt: currentDate } },
-              { date: currentDate, time: { $gte: currentTime } }
+              { date: currentDate, time: { $gt: currentTime } }
           ]
       });
 
@@ -61,6 +61,35 @@ let getAllActiveDraws = async (req, res) => {
       }
   } catch (error) {
       res.status(500).json({ "Message": "Error", "Error": error.message });
+  }
+};
+let getAllDeactiveOrExpiredDraws = async (req, res) => {
+  let currentDatetime = new Date();
+
+  let currentDate = currentDatetime.toISOString().split('T')[0]; // Extracts the date in YYYY-MM-DD format
+  let currentTime = currentDatetime.toTimeString().split(' ')[0].slice(0, 5); // Extracts the time in HH:MM format
+
+  try {
+    let draws = await draw.find({
+      $or: [
+        { status: 'deactive' },
+        {
+          status: 'active',
+          $or: [
+            { date: { $lt: currentDate } },
+            { date: currentDate, time: { $lt: currentTime } }
+          ]
+        }
+      ]
+    });
+
+    if (draws.length > 0) {
+      res.status(200).json(draws);
+    } else {
+      res.status(404).json({ "Message": "No deactive or expired draws found" });
+    }
+  } catch (error) {
+    res.status(500).json({ "Message": "Error", "Error": error.message });
   }
 };
 let getLastTenDraws = async (req, res) => {
@@ -270,5 +299,6 @@ let getDrawfieldsvalue = async (req, res) => {
     getDrawById,
     getDrawfieldsvalue,
     getLastTenDraws,
-    getlasttendrawsmerchant
+    getlasttendrawsmerchant,
+    getAllDeactiveOrExpiredDraws
 }

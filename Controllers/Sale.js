@@ -15,11 +15,25 @@ let DeleteMultipleSales = async (req, res) => {
         session.startTransaction();
 
         try {
-          const drawdetail = await draw.find({ _id:drawidtodel}).session(session);
-          if( drawdetail.status !== "active" ){
+            // Retrieve the sales to be deleted
+            const salesToDeleteFirst = await sale.find({ _id:saleIds[0]  }).session(session);
+          const drawdetail = await draw.findOne({ _id:salesToDeleteFirst[0].drawid}).session(session);
+
+          if( drawdetail.status !== 'active' ){
             await session.abortTransaction();
             session.endSession();
             return res.status(404).json({ status: false, "Message": "Draw is not activated" });
+          }
+          const drawDateTime = new Date(`${drawdetail.date}T${drawdetail.time}Z`);
+          let currentDatetime = new Date();
+          let currentDate = currentDatetime.toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
+          let currentTime = currentDatetime.toLocaleTimeString('en-GB', { hour12: false }).slice(0, 5); // 'HH:MM'
+          // Check if the current date and time are less than the draw date and time
+          const drawDateTime1 = new Date(`${currentDate}T${currentTime}Z`);
+          if (drawDateTime1 >= drawDateTime) {
+              await session.abortTransaction();
+              session.endSession();
+              return res.status(400).json({ status: false, "Message": "Cannot execute sale. The draw time has passed." });
           }
             // Retrieve the sales to be deleted
             const salesToDelete = await sale.find({ _id: { $in: saleIds } }).session(session);
@@ -256,82 +270,7 @@ const DeleteSales = async (req, res) => {
  
 };
 
-    const DeleteSales1 = async (req, res) => {
-    if (req.Tokendata.role === "merchant") {
-        const saleIds = req.body.saleIds;  // Assuming the sale IDs are sent in the request body as an array
-        const addedbyuserid = req.Tokendata._id;
 
-        const session = await mongoose.startSession();
-        session.startTransaction();
-
-        try {
-            for (let saleId of saleIds) {
-                let saleRecord = await sale.findOne({ _id: saleId, addedby: addedbyuserid }).session(session);
-                if (!saleRecord) {
-                    await session.abortTransaction();
-                    session.endSession();
-                    return res.status(404).json({ status: false, "Message": `Sale not found for ID: ${saleId}` });
-                }
-                let { drawid,bundle, salenumber, type, f, s ,buyingdetail} = saleRecord;
-                let drawRecord = await draw.findOne({ _id: drawid }).session(session);
-                if (!drawRecord) {
-                    await session.abortTransaction();
-                    session.endSession();
-                    return res.status(404).json({ status: false, "Message": `Draw not found for sale ID: ${saleId}` });
-                }
-                let numbertoadd1 = "", numbertoadd2 = "";
-                if (salenumber === 1) {
-                    numbertoadd1 = "onedigita";
-                    numbertoadd2 = "onedigitb";
-                } else if (salenumber === 2) {
-                    numbertoadd1 = "twodigita";
-                    numbertoadd2 = "twodigitb";
-                } else if (salenumber === 3) {
-                    numbertoadd1 = "threedigita";
-                    numbertoadd2 = "threedigitb";
-                } else if (salenumber === 4) {
-                    numbertoadd1 = "fourdigita";
-                    numbertoadd2 = "fourdigitb";
-                } 
-                let soldnumbertoadd1 = "sold" + bundle + "a";
-                let soldnumbertoadd2 = "sold" + bundle + "b";
-                let oversalenumbertoadd1 = "oversale" + bundle + "a";
-                let oversalenumbertoadd2 = "oversale" + bundle + "b";
-  
-                let updateData = {};
-                if (type === "sale") {
-                    updateData[`type.${soldnumbertoadd1}`] = Number(drawRecord.type.get(soldnumbertoadd1)) - Number(buyingdetail[1].f)
-                    updateData[`type.${soldnumbertoadd2}`] = Number(drawRecord.type.get(soldnumbertoadd2)) - Number(buyingdetail[1].s)
-                    updateData[`user.${addedbyuserid+soldnumbertoadd2}`] =Number(drawRecord.user.get(addedbyuserid+soldnumbertoadd2))-Number(buyingdetail[0].s)
-                    updateData[`user.${addedbyuserid+soldnumbertoadd1}`] =Number(drawRecord.user.get(addedbyuserid+soldnumbertoadd1))-Number(buyingdetail[0].f)
-                    let User = await user.findOne({ _id: addedbyuserid }).session(session);
-                    User.payment.availablebalance += (Number(f) + Number(s));
-                    await User.save({ session });
-                } else if (type === "oversale") {
-                    updateData[`type.${oversalenumbertoadd1}`] = Number(drawRecord.type.get(oversalenumbertoadd1) ) - Number(f);
-                    updateData[`type.${oversalenumbertoadd2}`]  = Number(drawRecord.type.get(oversalenumbertoadd1) ) - Number(s);
-                }
-                await draw.updateOne(
-                    { _id: drawid },
-                    { $set: updateData },
-                    { session }
-                );
-                await sale.deleteOne({ _id: saleId }).session(session);
-            }
-
-            await session.commitTransaction();
-            session.endSession();
-
-            res.status(200).json({ status: true, "Message": "Sales deleted successfully" });
-        } catch (err) {
-            await session.abortTransaction();
-            session.endSession();
-            res.status(500).json({ status: false, "Message": "There was an error", "Error": err.message });
-        }
-    } else {
-        res.status(403).json({ status: false, "Message": "You don't have access" });
-    }
-};
 let getMySaleDetail=async(req,res)=>{
     let id = req.params.id;
     let userid=req.Tokendata._id
@@ -566,13 +505,9 @@ let buyingdetail=[{from:"me",f:0,s:0},{from:"notme",f:0,s:0}]
         if (allSales.length > 0) {
           let newSales = await sale.create(allSales, { session });
           newSales.forEach((obj)=>{
-            console.log(obj)
-            console.log(User.payment.availablebalance,"--",obj.type,"--",Number(obj.buyingdetail[1].f + obj.buyingdetail[1].s))
             if(obj.type==="sale"){
               User.payment.availablebalance -= Number(obj.buyingdetail[1].f + obj.buyingdetail[1].s);
             }
-            console.log(User.payment.availablebalance,"--",obj.type,+"--",Number(obj.buyingdetail[1].f + obj.buyingdetail[1].s))
-            
           })
           
           await User.save({ session });
@@ -947,7 +882,6 @@ let getSalesofaSheet=async(req,res)=>{
 module.exports = {
     Addsale,
     getMySaleDetail,
-    DeleteSales,
     Addmultiplesale,
     addsheet,
     getAllSheets,
