@@ -822,16 +822,17 @@ const convertObjectToArray = (obj) => {
   };
   let getDistributorSaleVoucherReportforallsubdistributor = async (req, res) => {
         try {
-            let distributorusers=await user.find({_id:req.Tokendata._id})
+            // let distributorusers=await user.find({_id:req.Tokendata._id})
             let majorsalesreport=[]
             let drawId=req.body.date
             let drawinfo=await draw.find({date:drawId})
             let allsales =await sale.find({type:"sale",addedby:req.Tokendata._id,drawid:drawinfo[0]._id})
+            let distributorusers=await getAllUsersAddedBy(req.Tokendata._id);
             for (let singledistributor of distributorusers){
                 // let drawId=req.body.drawid
                 let userid=singledistributor._id
                 // let users=await user.find({role:"merchant",distributor:userid})
-                let users=await getAllUsersAddedBy(userid);
+                let users=[singledistributor]
                 let totalsale=[]
                 for (let singleuser of users){
                     // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
@@ -851,7 +852,6 @@ const convertObjectToArray = (obj) => {
                 let drawarrtosend=convertObjectToArray(drawtosend);
                 majorsalesreport.push({drawarrtosend:drawarrtosend,username:singledistributor.username,name:singledistributor.name})
             }
-           
           res.status(200).json(majorsalesreport);
         } catch (error) {
             res.status(500).json({ message: "Internal server error" });
