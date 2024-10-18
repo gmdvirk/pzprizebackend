@@ -958,7 +958,12 @@ const convertObjectToArray = (obj) => {
         s:0,
         scount:0
     }
+   
     let tempsale={
+        f:0,
+        s:0,
+    }
+    let tempsalefour={
         f:0,
         s:0,
     }
@@ -972,15 +977,22 @@ const convertObjectToArray = (obj) => {
     for (let i = 1; i <= searchString.length; i++) {
       prefixes.push(searchString.substring(0, i));
     }
+
     drawarrtosend.forEach((obj)=>{
-        tempsale.f=Number(tempsale.f)+obj.f
-        tempsale.s=Number(tempsale.s)+obj.s
+       
+        if(obj.bundle.length===4){
+            tempsalefour.f=Number(tempsalefour.f)+obj.f
+            tempsalefour.s=Number(tempsalefour.s)+obj.s
+            
+        }else{
+            tempsale.f=Number(tempsale.f)+obj.f
+            tempsale.s=Number(tempsale.s)+obj.s
+        }
     })
     // Filter data by prefixes and f > 0
     let matchingBundles = drawarrtosend
     .filter(item => prefixes.includes(item.bundle) && item.f > 0)
     .map(item => ({ ...item }));
-  
     for(let i=0;i<matchingBundles.length;i++){
         if(matchingBundles[i].bundle.length===1){
             matchingBundles[i].f=matchingBundles[i].f*prize.prize.prizea
@@ -1013,6 +1025,10 @@ if(obj.secondprize3!==''&&obj.secondprize3!=="0"){
 
 
 if(obj.secondprize4!==''&&obj.secondprize4!=="0"){
+    tempobj.scount+=1
+}
+
+if(obj.secondprize5!==''&&obj.secondprize5!=="0"){
     tempobj.scount+=1
 }
 
@@ -1051,7 +1067,6 @@ if(obj.secondprize4!==''&&obj.secondprize4!=="0"){
 }else{
     temp.secondprize1=[]
 }
-
     if(obj.secondprize2!==''&&obj.secondprize2!=="0")
         {searchString = obj.secondprize2;
 
@@ -1061,7 +1076,6 @@ if(obj.secondprize4!==''&&obj.secondprize4!=="0"){
    for (let i = 1; i <= searchString.length; i++) {
      prefixes.push(searchString.substring(0, i));
    }
-   
    // Filter data by prefixes and f > 0
    let matchingBundles = drawarrtosend
   .filter(item => prefixes.includes(item.bundle) && item.s > 0)
@@ -1087,7 +1101,6 @@ if(obj.secondprize4!==''&&obj.secondprize4!=="0"){
 }else{
     temp.secondprize2=[]
 }
-
    if(obj.secondprize3!==''&&obj.secondprize3!=="0"){
    
     searchString = obj.secondprize3;
@@ -1098,12 +1111,10 @@ if(obj.secondprize4!==''&&obj.secondprize4!=="0"){
   for (let i = 1; i <= searchString.length; i++) {
     prefixes.push(searchString.substring(0, i));
   }
-  
   // Filter data by prefixes and f > 0
   let matchingBundles = drawarrtosend
   .filter(item => prefixes.includes(item.bundle) && item.s > 0)
   .map(item => ({ ...item }));
-
 
   for(let i=0;i<matchingBundles.length;i++){
     if(matchingBundles[i].bundle.length===1){
@@ -1124,7 +1135,6 @@ if(obj.secondprize4!==''&&obj.secondprize4!=="0"){
 }else{
     temp.secondprize3=[]
 }
-
   if(obj.secondprize4!==''&&obj.secondprize4!=="0"){
     searchString = obj.secondprize4;
 
@@ -1134,7 +1144,6 @@ if(obj.secondprize4!==''&&obj.secondprize4!=="0"){
  for (let i = 1; i <= searchString.length; i++) {
    prefixes.push(searchString.substring(0, i));
  }
- 
  // Filter data by prefixes and f > 0
  let matchingBundles = drawarrtosend
   .filter(item => prefixes.includes(item.bundle) && item.s > 0)
@@ -1171,11 +1180,12 @@ else{
    for (let i = 1; i <= searchString.length; i++) {
      prefixes.push(searchString.substring(0, i));
    }
-   
+ 
    // Filter data by prefixes and f > 0
    let matchingBundles = drawarrtosend
   .filter(item => prefixes.includes(item.bundle) && item.s > 0)
   .map(item => ({ ...item }));
+
 
    
    for(let i=0;i<matchingBundles.length;i++){
@@ -1197,7 +1207,8 @@ else{
     }else{
          temp.secondprize5=[]
     }
-    return {tempobj,temp,tempsale};
+
+    return {tempobj,temp,tempsale,tempsalefour};
   }
   let getBillSheetReportforalldistributor = async (req, res) => {
     try {
@@ -1385,7 +1396,6 @@ else{
             }
             majorsalesreport.push({drawarrtosend,name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(drawarrtosend,obj,singledistributor)})
         }
-       
       res.status(200).json({majorsalesreport,secondprize1:drawinfo[0].secondprize1,
         secondprize2:drawinfo[0].secondprize2,
         secondprize3:drawinfo[0].secondprize3,
