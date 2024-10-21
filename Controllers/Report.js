@@ -1731,6 +1731,56 @@ else{
       res.status(500).json({ message: "Internal server error", error: error.message });
     }
   };
+  let getAllSellBill = async (req, res) => {
+    let data = req.body;
+    try {
+        
+        const userid = req.Tokendata._id;
+        // Fetch sheets by draw ID and user ID
+        let sheets = await sheet.find({ drawid: data.draw._id, addedby: userid });
+        let draws = await draw.findOne({ _id: data.draw._id });
+        let users = await user.findOne({ _id: userid });
+        let obj = {
+            firstprize: draws.firstprize,
+            secondprize1: draws.secondprize1,
+            secondprize2: draws.secondprize2,
+            secondprize3: draws.secondprize3,
+            secondprize4: draws.secondprize4,
+            secondprize5: draws.secondprize5,
+        };
+
+        // Use Promise.all to process all sheets concurrently
+        const sheetPromises = sheets.map(async (sheetItem) => {
+            const sales = await sale.find({ type: "sale", sheetid: sheetItem._id, addedby: userid });
+            
+            let alldraws=[]
+            let drawtosend={}
+            for (let singlesale of sales){
+                if(alldraws.includes(singlesale.bundle)){
+                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                }else{
+                    alldraws.push(singlesale.bundle)
+                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                }
+            }
+            let drawarrtosend=convertObjectToArray(drawtosend);
+            let result = await gettheprizecalculation(drawarrtosend, obj, users);
+            return {
+                ...sheetItem.toObject(),
+                result: result,
+            };
+        });
+
+        const sheetsWithResults = await Promise.all(sheetPromises);
+
+        res.status(200).json({ 
+            sheets: sheetsWithResults,
+            drawDetails: obj
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
 module.exports = {
     Addsheetmerchant,
     getSheetsByDate,
@@ -1766,5 +1816,6 @@ module.exports = {
     getSearchBundleAdmin,
     getHaddLimitAloudornot,
     getBalanceUpdated,
-    getHaddLimitReportforalldistributoradminbillsheet
+    getHaddLimitReportforalldistributoradminbillsheet,
+    getAllSellBill
 };
