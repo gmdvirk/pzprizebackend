@@ -263,8 +263,8 @@ let Addcreditpaymentbyditributor = async (req, res) => {
     if (type==="Draw" && Number(addedByUser.payment.availablebalance) < Number(amount)) {
         throw new Error('Insufficient balance for the user adding the payment');
     }
+    
     let users1 = await user.findOne({ _id: id }).session(session);
-
     if (!users1) {
       throw new Error('User not found');
     }

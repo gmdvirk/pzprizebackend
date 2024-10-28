@@ -71,31 +71,57 @@ let getSheetsByDate = async (req, res) => {
 let getSalesBySheet = async (req, res) => {
     try {
        
-        const {sheet,report} = req.body;
+        const {sheet,report,date} = req.body;
         // Fetch sales by sheet ID
-        
-        if(report==="combined"){
-            const sales = await sale.find({type:"sale",sheetid: sheet });
-            const oversales = await sale.find({type:"oversale", sheetid: sheet });
-            
-            res.status(200).json({sales,oversales});
-      }
-      else if (report==="generalsale"){
-        const sales = await sale.find({type:"sale", sheetid: sheet });
-
-        if (!sales.length) {
-            return res.status(200).json([]);
+        if(sheet==="sjkngkfjgnfkj"){
+            const drawsids = await draw.findOne({date:date});
+            if(report==="combined"){
+                const sales = await sale.find({type:"sale",sheetid: "",drawid:drawsids._id });
+                const oversales = await sale.find({type:"oversale", sheetid: "",drawid:drawsids._id  });
+                
+                res.status(200).json({sales,oversales});
+          }
+          else if (report==="generalsale"){
+            const sales = await sale.find({type:"sale", sheetid: "",drawid:drawsids._id  });
+    
+            if (!sales.length) {
+                return res.status(200).json([]);
+            }
+            res.status(200).json(sales);
+          }
+          else if (report==="oversale"){
+            const sales = await sale.find({type:"oversale", sheetid: "",drawid:drawsids._id  });
+    
+            if (!sales.length) {
+                return res.status(200).json([]);
+            }
+            res.status(200).json(sales);
+          }
+        }else{
+            if(report==="combined"){
+                const sales = await sale.find({type:"sale",sheetid: sheet });
+                const oversales = await sale.find({type:"oversale", sheetid: sheet });
+                
+                res.status(200).json({sales,oversales});
+          }
+          else if (report==="generalsale"){
+            const sales = await sale.find({type:"sale", sheetid: sheet });
+    
+            if (!sales.length) {
+                return res.status(200).json([]);
+            }
+            res.status(200).json(sales);
+          }
+          else if (report==="oversale"){
+            const sales = await sale.find({type:"oversale", sheetid: sheet });
+    
+            if (!sales.length) {
+                return res.status(200).json([]);
+            }
+            res.status(200).json(sales);
+          }
         }
-        res.status(200).json(sales);
-      }
-      else if (report==="oversale"){
-        const sales = await sale.find({type:"oversale", sheetid: sheet });
-
-        if (!sales.length) {
-            return res.status(200).json([]);
-        }
-        res.status(200).json(sales);
-      }
+   
         
     } catch (error) {
         console.error("Error in getSalesBySheet:", error);
@@ -212,19 +238,13 @@ let getDrawById = async (req, res) => {
     }
   };
   async function getAllUsersAddedBy(userId) {
-    // const allUsers = [];
-    
-    // async function findUsersAddedBy(currentUserId) {
         const users = await user.find({ addedby: userId });
-    //     if (users.length > 0) {
-    //         for (const user of users) {
-                // allUsers.push(users);
-    //             await findUsersAddedBy(user.userid);
-    //         }
-    //     }
-    // }
-    // await findUsersAddedBy(userId);
     return users;
+}
+async function getAllUsersAddedByDirectOnly(userId) {
+    const users = await user.find({ addedby: userId });
+    const usersnew=users.filter((obj)=>obj.addedby[(obj.addedby.length)-1]===userId)
+return usersnew;
 }
 async function getAllUsersAddedBy1(userId) {
         const users = await user.find({ addedby: userId });
@@ -827,7 +847,7 @@ const convertObjectToArray = (obj) => {
             let drawId=req.body.date
             let drawinfo=await draw.find({date:drawId})
             let allsales =await sale.find({type:"sale",addedby:req.Tokendata._id,drawid:drawinfo[0]._id})
-            let distributorusers=await getAllUsersAddedBy(req.Tokendata._id);
+            let distributorusers=await getAllUsersAddedByDirectOnly(req.Tokendata._id);
             for (let singledistributor of distributorusers){
                 // let drawId=req.body.drawid
                 let userid=singledistributor._id
@@ -927,7 +947,7 @@ const convertObjectToArray = (obj) => {
         let userid=req.body.dealer
         let useritself=await user.find({_id:userid})
         let drawinfo=await draw.find({date:drawId})
-        let users=await getAllUsersAddedBy(userid);
+        let users=await getAllUsersAddedByDirectOnly(userid);
         let allsales =await sale.find({type:"sale",addedby:userid,drawid:drawinfo[0]._id})
         users=[...users,...useritself]
         let totalsale=[]
@@ -958,7 +978,6 @@ const convertObjectToArray = (obj) => {
         s:0,
         scount:0
     }
-   
     let tempsale={
         f:0,
         s:0,
@@ -1771,8 +1790,27 @@ else{
             };
         });
 
-        const sheetsWithResults = await Promise.all(sheetPromises);
-
+        let sheetsWithResults = await Promise.all(sheetPromises);
+        let sheetItem={sheetname:"no save"}
+        const sales = await sale.find({ type: "sale", drawid:data.draw._id,sheetid:'', addedby: userid });
+           
+        let alldraws=[]
+        let drawtosend={}
+        for (let singlesale of sales){
+            if(alldraws.includes(singlesale.bundle)){
+                drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+            }else{
+                alldraws.push(singlesale.bundle)
+                drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+            }
+        }
+        let drawarrtosend=convertObjectToArray(drawtosend);
+        
+        let result = await gettheprizecalculation(drawarrtosend, obj, users);
+        sheetsWithResults.push({
+            ...sheetItem,
+            result: result,
+        })
         res.status(200).json({ 
             sheets: sheetsWithResults,
             drawDetails: obj
