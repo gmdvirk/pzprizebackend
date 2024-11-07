@@ -328,6 +328,7 @@ let buyingdetail=[{from:"me",f:0,s:0},{from:"notme",f:0,s:0}]
           let users = await draw.findOne({ _id:drawid }).session(session);
           // Parse the draw date and time from the users object
           const drawDateTime = new Date(`${users.date}T${users.time}Z`);
+          drawDateTime.setHours(drawDateTime.getHours() - 5);
           let currentDatetime = new Date();
           let currentDate = currentDatetime.toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
           let currentTime = currentDatetime.toLocaleTimeString('en-GB', { hour12: false }).slice(0, 5); // 'HH:MM'
@@ -556,6 +557,7 @@ let buyingdetail=[{from:"me",f:0,s:0},{from:"notme",f:0,s:0}]
              
                // Parse the draw date and time from the users object
                const drawDateTime = new Date(`${users.date}T${users.time}Z`);
+               drawDateTime.setHours(drawDateTime.getHours() - 5);
                let currentDatetime = new Date();
                let currentDate = currentDatetime.toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
                let currentTime = currentDatetime.toLocaleTimeString('en-GB', { hour12: false }).slice(0, 5); // 'HH:MM'

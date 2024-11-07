@@ -76,13 +76,13 @@ let getSalesBySheet = async (req, res) => {
         if(sheet==="sjkngkfjgnfkj"){
             const drawsids = await draw.findOne({date:date});
             if(report==="combined"){
-                const sales = await sale.find({type:"sale",sheetid: "",drawid:drawsids._id });
-                const oversales = await sale.find({type:"oversale", sheetid: "",drawid:drawsids._id  });
+                const sales = await sale.find({type:"sale",sheetid: "",drawid:drawsids._id,addedby:req.Tokendata._id });
+                const oversales = await sale.find({type:"oversale", sheetid: "",drawid:drawsids._id ,addedby:req.Tokendata._id });
                 
                 res.status(200).json({sales,oversales});
           }
           else if (report==="generalsale"){
-            const sales = await sale.find({type:"sale", sheetid: "",drawid:drawsids._id  });
+            const sales = await sale.find({type:"sale", sheetid: "",drawid:drawsids._id,addedby:req.Tokendata._id  });
     
             if (!sales.length) {
                 return res.status(200).json([]);
@@ -90,7 +90,7 @@ let getSalesBySheet = async (req, res) => {
             res.status(200).json(sales);
           }
           else if (report==="oversale"){
-            const sales = await sale.find({type:"oversale", sheetid: "",drawid:drawsids._id  });
+            const sales = await sale.find({type:"oversale", sheetid: "",drawid:drawsids._id ,addedby:req.Tokendata._id });
     
             if (!sales.length) {
                 return res.status(200).json([]);
@@ -1329,7 +1329,9 @@ else{
   let getBillSheetReportforparticulardistributorme = async (req, res) => {
     try {
         let drawId=req.body.date
-        let distributorusers=await user.find({_id:req.Tokendata._id})
+        let distributorusers1=await user.find({_id:req.Tokendata._id})
+        let distributorusers2=await user.find({addedby:req.Tokendata._id})
+        let distributorusers=[...distributorusers1,...distributorusers2]
         let drawinfo=await draw.find({date:drawId})
         let majorsalesreport=[]
         let allsales =await sale.find({type:"sale",addedby:req.Tokendata._id,drawid:drawinfo[0]._id})
@@ -1729,6 +1731,7 @@ else{
       let calculatedData = calculate(tempobj);
       // Process users sequentially
       for (const obj of calculatedData) {
+        console.log(obj)
         let User = await user.findOne({ _id: obj.id }).session(session);
         if (!User) {
           throw new Error(`User not found: ${obj.id}`);
@@ -1792,7 +1795,7 @@ else{
 
         let sheetsWithResults = await Promise.all(sheetPromises);
         let sheetItem={sheetname:"no save"}
-        const sales = await sale.find({ type: "sale", drawid:data.draw._id,sheetid:'', addedby: userid });
+        const sales = await sale.find({drawid:data.draw._id,sheetid:'', addedby: userid });
            
         let alldraws=[]
         let drawtosend={}
