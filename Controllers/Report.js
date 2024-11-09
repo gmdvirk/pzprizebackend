@@ -1301,23 +1301,37 @@ else{
         let allsales =await sale.find({type:"sale",drawid:drawinfo[0]._id})
         for (let singledistributor of distributorusers){
             let userid=singledistributor._id
-            let users=await getAllUsersAddedBy(userid);
+            // let users=await getAllUsersAddedBy(userid);
             let totalsale=[]
-            for (let singleuser of users){
-                // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
-                let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
+            let salesprocessed=[]
+            // for (let singleuser of users){
+            //     // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
+            //     let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
+            //     totalsale=[...totalsale,...sales]
+            // }
+            let sales= allsales.filter((obj)=>obj.addedby.includes(userid))
                 totalsale=[...totalsale,...sales]
-            }
             let alldraws=[]
             let drawtosend={}
             for (let singlesale of totalsale){
-                if(alldraws.includes(singlesale.bundle)){
-                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
-                }else{
-                    alldraws.push(singlesale.bundle)
-                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                // if(alldraws.includes(singlesale.bundle)){
+                //     drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                // }else{
+                //     alldraws.push(singlesale.bundle)
+                //     drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                // }
+                if(!(salesprocessed.includes(singlesale._id))){
+                    if(alldraws.includes(singlesale.bundle)){
+                        drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                        salesprocessed.push(singlesale._id)
+                    }else{
+                        alldraws.push(singlesale.bundle)
+                        drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                        salesprocessed.push(singlesale._id)
+                    }
                 }
             }
+            
             let drawarrtosend=convertObjectToArray(drawtosend);
             let obj={
                 secondprize1:drawinfo[0].secondprize1,
@@ -1349,21 +1363,36 @@ else{
         let allsales =await sale.find({type:"sale",addedby:req.body.dealer,drawid:drawinfo[0]._id})
         for (let singledistributor of distributorusers){
             let userid=singledistributor._id
-            let users=await getAllUsersAddedBy(userid);
+            // let users=await getAllUsersAddedBy(userid);
+            // const usersnew = await user.find({ addedby: userid });
+            // const users=usersnew.filter((obj)=>obj.addedby[(obj.addedby.length)-1]===userid)
             let totalsale=[]
-            for (let singleuser of users){
-                // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
-                let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
-                totalsale=[...totalsale,...sales]
-            }
+            let salesprocessed=[]
+            // for (let singleuser of users){
+            //     // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
+            //     let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
+            //     totalsale=[...totalsale,...sales]
+            // }
+            let sales= allsales.filter((obj)=>obj.addedby.includes(userid))
+            totalsale=[...totalsale,...sales]
             let alldraws=[]
             let drawtosend={}
             for (let singlesale of totalsale){
-                if(alldraws.includes(singlesale.bundle)){
-                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
-                }else{
-                    alldraws.push(singlesale.bundle)
-                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                // if(alldraws.includes(singlesale.bundle)){
+                //     drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                // }else{
+                //     alldraws.push(singlesale.bundle)
+                //     drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                // }
+                if(!(salesprocessed.includes(singlesale._id))){
+                    if(alldraws.includes(singlesale.bundle)){
+                        drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                        salesprocessed.push(singlesale._id)
+                    }else{
+                        alldraws.push(singlesale.bundle)
+                        drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                        salesprocessed.push(singlesale._id)
+                    }
                 }
             }
             let drawarrtosend=convertObjectToArray(drawtosend);
@@ -1394,27 +1423,37 @@ else{
         let drawId=req.body.date
         let distributorusers1=await user.find({_id:req.Tokendata._id})
         let distributorusers2=await user.find({addedby:req.Tokendata._id})
-        let distributorusers=[...distributorusers1,...distributorusers2]
+        let distributoruser3=distributorusers2.filter((obj)=>obj.addedby[obj.addedby.length-1]==req.Tokendata._id)
+        let distributorusers=[...distributorusers1,...distributoruser3]
         let drawinfo=await draw.find({date:drawId})
         let majorsalesreport=[]
         let allsales =await sale.find({type:"sale",addedby:req.Tokendata._id,drawid:drawinfo[0]._id})
         for (let singledistributor of distributorusers){
-            let userid=singledistributor._id
-            let users=await getAllUsersAddedByDirectOnly(userid);
+            // let userid=singledistributor._id
+            // let users=await getAllUsersAddedByDirectOnly(userid);
             let totalsale=[]
-            for (let singleuser of users){
-                // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
-                let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
+            let sales= allsales.filter((obj)=>obj.addedby.includes(singledistributor._id))
                 totalsale=[...totalsale,...sales]
-            }
+                console.log(totalsale)
             let alldraws=[]
+            let salesprocessed=[]
             let drawtosend={}
             for (let singlesale of totalsale){
-                if(alldraws.includes(singlesale.bundle)){
-                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
-                }else{
-                    alldraws.push(singlesale.bundle)
-                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                // if(alldraws.includes(singlesale.bundle)){
+                //     drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                // }else{
+                //     alldraws.push(singlesale.bundle)
+                //     drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                // }
+                if(!(salesprocessed.includes(singlesale._id))){
+                    if(alldraws.includes(singlesale.bundle)){
+                        drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                        salesprocessed.push(singlesale._id)
+                    }else{
+                        alldraws.push(singlesale.bundle)
+                        drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                        salesprocessed.push(singlesale._id)
+                    }
                 }
             }
             let drawarrtosend=convertObjectToArray(drawtosend);
@@ -1443,30 +1482,42 @@ else{
   };
   let getBillSheetReportforparticulardistributorbyme = async (req, res) => {
     try {
+        // console.log("called")
         let drawId=req.body.date
         let distributorusers=await user.find({_id:req.body.dealer})
         let drawinfo=await draw.find({date:drawId})
         let majorsalesreport=[]
         
         let allsales =await sale.find({type:"sale",addedby:req.body.dealer,drawid:drawinfo[0]._id})
+        // console.log(allsales)
         for (let singledistributor of distributorusers){
             let userid=singledistributor._id
-            let users=await getAllUsersAddedBy(userid);
-            users=[...users,...distributorusers]
+            // let users=await getAllUsersAddedByDirectOnly(userid);
+            // let distributorusers2=await user.find({addedby:userid})
+            // let distributoruser3=distributorusers2.filter((obj)=>obj.addedby[obj.addedby.length-1]==userid)
+            // users=[...distributorusers,...distributoruser3]
             let totalsale=[]
-            for (let singleuser of users){
-                // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
-                let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
+            let salesprocessed=[]
+            let sales= allsales.filter((obj)=>obj.addedby.includes(userid))
                 totalsale=[...totalsale,...sales]
-            }
             let alldraws=[]
             let drawtosend={}
             for (let singlesale of totalsale){
-                if(alldraws.includes(singlesale.bundle)){
-                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
-                }else{
-                    alldraws.push(singlesale.bundle)
-                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                // if(alldraws.includes(singlesale.bundle)){
+                //     drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                // }else{
+                //     alldraws.push(singlesale.bundle)
+                //     drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                // }
+                if(!(salesprocessed.includes(singlesale._id))){
+                    if(alldraws.includes(singlesale.bundle)){
+                        drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                        salesprocessed.push(singlesale._id)
+                    }else{
+                        alldraws.push(singlesale.bundle)
+                        drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                        salesprocessed.push(singlesale._id)
+                    }
                 }
             }
             let drawarrtosend=convertObjectToArray(drawtosend);
@@ -1846,7 +1897,7 @@ else{
 
         // Use Promise.all to process all sheets concurrently
         const sheetPromises = sheets.map(async (sheetItem) => {
-            const sales = await sale.find({ type: "sale", sheetid: sheetItem._id, addedby: userid });
+            const sales = await sale.find({ sheetid: sheetItem._id, addedby: userid });
             
             let alldraws=[]
             let drawtosend={}
@@ -1886,6 +1937,10 @@ else{
         sheetsWithResults.push({
             ...sheetItem,
             result: result,
+        })
+        console.log({ 
+            sheets: sheetsWithResults,
+            drawDetails: obj
         })
         res.status(200).json({ 
             sheets: sheetsWithResults,
