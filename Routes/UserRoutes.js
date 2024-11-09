@@ -1,4 +1,4 @@
-const {Loginasanother,addadmin,Editadmin,getadmindetail,changepassword,getAllUsers,getBalance,changekey , GetUserById,getAlldetailsbyId, Createuser, updateuserById, DeleteUserById, Login,Edituser,getAllDistributors,getAllMyDistributors,getAllMerchants,getAllMyMerchants,getAllSubDistributors,getAllMySubDistributors} = require("../Controllers/Users")
+const {Loginasanother,addadmin,Editadmin,getadmindetail,changepassword,getAllUsers,getBalance,changekey , GetUserById,getAlldetailsbyId, Createuser, updateuserById, DeleteUserById, Login,Edituser,getAllDistributors,getAllMyDistributors,getAllMerchants,getAllMyusers,getAllMyMerchants,getAllSubDistributors,getAllMySubDistributors} = require("../Controllers/Users")
 
 const express = require("express");
 const { AuthenticateUser,Authenticatedornot } = require("../utils");
@@ -11,6 +11,7 @@ router.get("/getallmydistributors"  ,AuthenticateUser,  getAllMyDistributors )
 router.get("/getallmysubdistributors"  ,AuthenticateUser,  getAllMySubDistributors )
 router.get("/getallMerchants"  ,AuthenticateUser,  getAllMerchants )
 router.get("/getallmyMerchants"  ,AuthenticateUser,  getAllMyMerchants )
+router.get("/getAllMyusers"  ,AuthenticateUser,  getAllMyusers )
 router.get("/"  ,AuthenticateUser,  getAllUsers )
 router.get("/auth"  ,Authenticatedornot )
 router.get("/getadmindetail"  ,AuthenticateUser,getadmindetail )

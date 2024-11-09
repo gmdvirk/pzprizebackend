@@ -242,6 +242,28 @@ let getAllMyMerchants = async(req, res) => {
     res.status(500).json({"Message": "Internal server error", err: e.message});
   }
 };
+let getAllMyusers = async(req, res) => {
+  try {
+    let addedbyuserid = req.Tokendata._id;
+    
+    // Find users with role 'merchant' and where the last element of addedby array matches addedbyuserid
+    let users = await user.find({
+      addedby: { $exists: true, $ne: [] },
+      $expr: {
+        $eq: [{ $arrayElemAt: ["$addedby", -1] }, addedbyuserid]
+      }
+    });
+
+    if (users && users.length > 0) {
+      res.status(200).json(users);
+    } else {
+      res.status(404).json({"Message": "No merchants found"});
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({"Message": "Internal server error", err: e.message});
+  }
+};
 let GetUserById = async(req ,res)=>{
     try{let id = req.params.id;
     let users = await user.findOne({_id:id});
@@ -278,6 +300,7 @@ async function getAllUsersAddedBy(userId) {
 let Edituser =async (req , res)=>{
   try{let User=req.Tokendata
   let data = req.body;
+  data.comission={comission:req.body.comission,pcpercentage:req.body.pcpercentage}
   let id = data._id;
   let users = await user.findById(id);
   if(users)
@@ -625,5 +648,6 @@ module.exports  ={
     changepassword,
     Editadmin,
     getadmindetail,
-    addadmin
+    addadmin,
+    getAllMyusers
 }

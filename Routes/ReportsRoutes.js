@@ -25,7 +25,8 @@ const {Addsheetmerchant,getSheetsByDate,getDrawById,getSalesBySheet,
     getHaddLimitAloudornot,
     getBalanceUpdated,
     getHaddLimitReportforalldistributoradminbillsheet,
-    getAllSellBill
+    getAllSellBill,
+    getTotalSaleforadmin
 
 } = require("../Controllers/Report")
 const express = require("express");
@@ -58,5 +59,6 @@ router.get("/getHaddLimitAloudornot" ,AuthenticateUser ,  getHaddLimitAloudornot
 router.post("/getBalanceUpdated" ,AuthenticateUser ,  getBalanceUpdated )
 router.post("/getSalesBySheet" ,AuthenticateUser ,  getSalesBySheet )
 router.post("/getAllSellBill" ,AuthenticateUser ,  getAllSellBill )
+router.get("/getTotalSaleforadmin/:date" ,AuthenticateUser ,  getTotalSaleforadmin )
 router.post("/getHaddLimitReportforalldistributoradminbillsheet" ,AuthenticateUser ,  getHaddLimitReportforalldistributoradminbillsheet )
 module.exports = router;

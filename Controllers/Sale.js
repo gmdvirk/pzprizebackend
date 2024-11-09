@@ -25,6 +25,7 @@ let DeleteMultipleSales = async (req, res) => {
             return res.status(404).json({ status: false, "Message": "Draw is not activated" });
           }
           const drawDateTime = new Date(`${drawdetail.date}T${drawdetail.time}Z`);
+          drawDateTime.setHours(drawDateTime.getHours() - 5);
           let currentDatetime = new Date();
           let currentDate = currentDatetime.toLocaleDateString('en-CA'); // 'YYYY-MM-DD'
           let currentTime = currentDatetime.toLocaleTimeString('en-GB', { hour12: false }).slice(0, 5); // 'HH:MM'

@@ -232,6 +232,7 @@ let getDrawById = async (req, res) => {
     try {
         let drawId=req.params.date
       let draws = await draw.find({date:drawId});
+      console.log(draws)
       res.status(200).json(draws);
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });
@@ -603,6 +604,7 @@ const convertObjectToArray = (obj) => {
             // let users=await user.find({role:"merchant",distributor:userid})
             let users=await getAllUsersAddedBy(userid);
             let totalsale=[]
+            let salesprocessed=[]
             for (let singleuser of users){
                 // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
                 let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
@@ -611,12 +613,17 @@ const convertObjectToArray = (obj) => {
             let alldraws=[]
             let drawtosend={}
             for (let singlesale of totalsale){
-                if(alldraws.includes(singlesale.bundle)){
-                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
-                }else{
-                    alldraws.push(singlesale.bundle)
-                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                if(!(salesprocessed.includes(singlesale._id))){
+                    if(alldraws.includes(singlesale.bundle)){
+                        drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                        salesprocessed.push(singlesale._id)
+                    }else{
+                        alldraws.push(singlesale.bundle)
+                        drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                        salesprocessed.push(singlesale._id)
+                    }
                 }
+                
             }
             let drawarrtosend=convertObjectToArray(drawtosend);
             majorsalesreport.push({drawarrtosend:drawarrtosend,username:singledistributor.username,name:singledistributor.name})
@@ -731,6 +738,7 @@ const convertObjectToArray = (obj) => {
         let users=await getAllUsersAddedBy(id);
         let totalsale=[]
         let allsales =await sale.find({type:"sale",addedby:id,drawid:drawinfo[0]._id})
+        let salesprocessed=[]
         for (let singleuser of users){
             // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
             let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
@@ -739,12 +747,55 @@ const convertObjectToArray = (obj) => {
         let alldraws=[]
         let drawtosend={}
         for (let singlesale of totalsale){
-            if(alldraws.includes(singlesale.bundle)){
-                drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
-            }else{
-                alldraws.push(singlesale.bundle)
-                drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+            if(!(salesprocessed.includes(singlesale._id))){
+
+                if(alldraws.includes(singlesale.bundle)){
+                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                    salesprocessed.push(singlesale._id)
+                }else{
+                    alldraws.push(singlesale.bundle)
+                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                    salesprocessed.push(singlesale._id)
+                }
             }
+            
+        }
+       let drawarrtosend=convertObjectToArray(drawtosend);
+      res.status(200).json(drawarrtosend);
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+  };
+  let getTotalSaleforadmin= async (req, res) => {
+    try {
+        let drawId=req.params.date
+        let id=req.Tokendata._id
+        let drawinfo=await draw.find({date:drawId})
+        // let users=await getAllUsersAddedBy(id);
+        let totalsale=[]
+        let allsales =await sale.find({type:"sale",addedby:id,drawid:drawinfo[0]._id})
+        let salesprocessed=[]
+        // for (let singleuser of users){
+        //     // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
+        //     let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
+        //     totalsale=[...totalsale,...sales]
+        // }
+        totalsale=[...allsales]
+        let alldraws=[]
+        let drawtosend={}
+        for (let singlesale of totalsale){
+            if(!(salesprocessed.includes(singlesale._id))){
+
+                if(alldraws.includes(singlesale.bundle)){
+                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                    salesprocessed.push(singlesale._id)
+                }else{
+                    alldraws.push(singlesale.bundle)
+                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                    salesprocessed.push(singlesale._id)
+                }
+            }
+            
         }
        let drawarrtosend=convertObjectToArray(drawtosend);
       res.status(200).json(drawarrtosend);
@@ -1538,11 +1589,16 @@ else{
                     addedby:req.Tokendata._id
                 });
                 let data=[]
+
                 for (let i=0;i<users.length;i++){
                     let temparr=sales.filter((obj)=>obj.sheetid==users[i]._id)
                     if(temparr.length>0){
                         data.push({saledata:temparr,name:users[i].sheetname})
                     }
+                }
+                let temparr=sales.filter((obj)=>obj.sheetid=="");
+                if(temparr.length>0){
+                    data.push({saledata:temparr,name:"no save"})
                 }
                 res.status(200).json(data);
             } catch (error) {
@@ -1563,7 +1619,12 @@ else{
                 if(temparr.length>0){
                     data.push({saledata:temparr,name:users[i].sheetname,username:user.username})
                 }
+
             }
+            let temparr=sales.filter((obj)=>obj.sheetid=="");
+                if(temparr.length>0){
+                    data.push({saledata:temparr,name:"no save",username:user.username})
+                }
             return data;
         } catch (error) {
             return []
@@ -1596,9 +1657,9 @@ else{
                 let data=[]
                 for (let i=0;i<users.length;i++){
                     let temparr=await getSearchBundleMerchantfordistributor(drawid,users[i]._id,users[i])
-                    if(temparr.length>0){
+                    // if(temparr.length>0){
                         data.push(temparr)
-                    }
+                    // }
                 }
                 res.status(200).json(data);
               
@@ -1858,5 +1919,6 @@ module.exports = {
     getHaddLimitAloudornot,
     getBalanceUpdated,
     getHaddLimitReportforalldistributoradminbillsheet,
-    getAllSellBill
+    getAllSellBill,
+    getTotalSaleforadmin
 };
