@@ -1,5 +1,6 @@
 
 const user = require("../models/Users.schema")
+const Limit = require("../models/Limit.schema");
 const jwt = require("jsonwebtoken")
 let getAllUsers = async(req , res)=>{
   try{if(req.Tokendata.role==="superadmin"){
@@ -300,7 +301,7 @@ async function getAllUsersAddedBy(userId) {
 let Edituser =async (req , res)=>{
   try{let User=req.Tokendata
   let data = req.body;
-  data.comission={comission:req.body.comission,pcpercentage:req.body.pcpercentage}
+  
   let id = data._id;
   let users = await user.findById(id);
   if(users)
@@ -329,6 +330,120 @@ let Edituser =async (req , res)=>{
 
   }
 }
+
+// Get User by User ID Function
+const getLimitByUserId = async (req, res) => {
+  try {
+    let userId = req.params.userId;
+    let user = await Limit.find({ userid: userId });
+
+    if (user) {
+      res.status(200).json({ status: true, data: user });
+    } else {
+      res.status(200).json({ status: true, data:[] });
+    }
+  } catch (e) {
+    res.status(500).json({ status: false, message: "Internal server error", error: e });
+  }
+};
+
+
+// Add User Function
+const addLimit = async (req, res) => {
+  try {
+    let data = req.body;
+    let newLimit = new Limit(data);
+    let savedLimit = await newLimit.save();
+    res.status(201).json({ status: true, data: savedLimit });
+  } catch (e) {
+    res.status(500).json({ status: false, message: "Internal server error", error: e });
+  }
+};
+
+// Edit User Function
+const editLimit = async (req, res) => {
+  try {
+    let userTokenData = req.Tokendata; // Assuming userTokenData has some useful context
+    let data = req.body;
+
+    let id = data._id;
+    if(id!==""){
+    
+    let existingLimit = await Limit.findById(id);
+    if (existingLimit) {
+      // Check if any of the limit fields differ
+      const hasChanged = (
+        existingLimit.drawid !== data.limit.drawid ||
+        existingLimit.hindsaa !== data.limit.hindsaa ||
+        existingLimit.hindsab !== data.limit.hindsab ||
+        existingLimit.akraa !== data.limit.akraa ||
+        existingLimit.akrab !== data.limit.akrab ||
+        existingLimit.tendolaa !== data.limit.tendolaa ||
+        existingLimit.tendolab !== data.limit.tendolab ||
+        existingLimit.panogadaa !== data.limit.panogadaa ||
+        existingLimit.panogadab !== data.limit.panogadab
+      );
+
+      if (hasChanged) {
+        let tempdata={
+          userid: data.userid,
+          drawid: data.drawid,
+            hindsaa: data.limit.hindsaa,
+            hindsab: data.limit.hindsab,
+            akraa:data.limit.akraa,
+            akrab: data.limit.akrab,
+            tendolaa: data.limit.tendolaa,
+            tendolab: data.limit.tendolab,
+            panogadaa: data.limit.panogadaa,
+            panogadab: data.limit.panogadab
+        }
+
+        // Update the current limit
+        let updatedLimit = await Limit.findByIdAndUpdate(id, tempdata, { new: true });
+
+        res.status(200).json({ status: true, data: updatedLimit });
+      } else {
+        let tempdata={
+          userid: data.userid,
+          drawid: data.drawid,
+            hindsaa: data.limit.hindsaa,
+            hindsab: data.limit.hindsab,
+            akraa:data.limit.akraa,
+            akrab: data.limit.akrab,
+            tendolaa: data.limit.tendolaa,
+            tendolab: data.limit.tendolab,
+            panogadaa: data.limit.panogadaa,
+            panogadab: data.limit.panogadab
+        }
+
+        // No changes detected in limits, update directly
+        let updatedLimit = await Limit.findByIdAndUpdate(id, tempdata, { new: true });
+        res.status(200).json({ status: true, data: updatedLimit });
+      }
+    }
+  } else {
+      let data = req.body;
+      let tempdata={
+        userid: data.userid,
+        drawid: data.drawid,
+          hindsaa: data.limit.hindsaa,
+          hindsab: data.limit.hindsab,
+          akraa:data.limit.akraa,
+          akrab: data.limit.akrab,
+          tendolaa: data.limit.tendolaa,
+          tendolab: data.limit.tendolab,
+          panogadaa: data.limit.panogadaa,
+          panogadab: data.limit.panogadab
+      }
+    let newLimit = new Limit(tempdata);
+    let savedLimit = await newLimit.save();
+    res.status(201).json({ status: true, data: savedLimit });
+    }
+  } catch (e) {
+    res.status(500).json({ message: "Internal server error", error: e });
+  }
+};
+
 let Editadmin =async (req , res)=>{
   try{let User=req.Tokendata
   if(req.Tokendata.role==="superadmin"){
@@ -649,5 +764,8 @@ module.exports  ={
     Editadmin,
     getadmindetail,
     addadmin,
-    getAllMyusers
+    getAllMyusers,
+    addLimit,
+    editLimit,
+    getLimitByUserId
 }

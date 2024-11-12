@@ -1,4 +1,4 @@
-const {Loginasanother,addadmin,Editadmin,getadmindetail,changepassword,getAllUsers,getBalance,changekey , GetUserById,getAlldetailsbyId, Createuser, updateuserById, DeleteUserById, Login,Edituser,getAllDistributors,getAllMyDistributors,getAllMerchants,getAllMyusers,getAllMyMerchants,getAllSubDistributors,getAllMySubDistributors} = require("../Controllers/Users")
+const {Loginasanother,getLimitByUserId,addadmin,Editadmin,getadmindetail,changepassword,getAllUsers,getBalance,changekey , GetUserById,getAlldetailsbyId, Createuser, updateuserById, DeleteUserById, Login,Edituser,getAllDistributors,getAllMyDistributors,getAllMerchants,getAllMyusers,getAllMyMerchants,getAllSubDistributors,getAllMySubDistributors,addLimit,editLimit} = require("../Controllers/Users")
 
 const express = require("express");
 const { AuthenticateUser,Authenticatedornot } = require("../utils");
@@ -27,6 +27,11 @@ router.patch("/updateprofile",AuthenticateUser , updateuserById)
 router.post("/changekey",AuthenticateUser , changekey)
 router.post("/changepassword",AuthenticateUser , changepassword)
 router.post("/editadmin",AuthenticateUser , Editadmin)
+router.post("/addLimit",AuthenticateUser , addLimit)
+router.post("/editLimit",AuthenticateUser , editLimit)
+router.get("/getLimitByUserId/:userId",AuthenticateUser , getLimitByUserId)
+
+
 module.exports = router;
 
 

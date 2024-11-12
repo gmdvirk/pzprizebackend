@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
         pcpercentage:Number,
     },
     limit:{
+        drawid:String,
         hindsaa:Number,
         hindsab:Number,
         akraa:Number,
@@ -33,7 +34,7 @@ const userSchema = new mongoose.Schema({
         tendolab:Number,
         panogadaa:Number,
         panogadab:Number,
-    },
+        },
     prize:{
         prizea:Number,
         prizeb:Number,
