@@ -1,6 +1,7 @@
 const user = require("../models/Users.schema");
 const draw = require("../models/Draw.schema");
 const sale = require("../models/Sale.schema");
+const payment = require("../models/Payment.schema")
 const sheet = require("../models/Sheet.schema");
 const Limit = require("../models/Limit.schema");
 const jwt = require("jsonwebtoken");
@@ -284,10 +285,10 @@ const convertObjectToArray = (obj) => {
                 }
             }
             let drawarrtosend=convertObjectToArray(drawtosend);
-            if(distributoruser.haddaloud){
+            // if(distributoruser.haddaloud){
                 distributoruser.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:distributoruser._id})
-            }
-            if(distributoruser.haddaloud && distributoruser.role!=="merchant" && distributoruser.limitsetting){
+            // }
+            if(distributoruser.role!=="merchant" && distributoruser.limitsetting){
                 res.status(200).json({drawarrtosend,limits:distributoruser.limitsetting,username:distributoruser.username,name:distributoruser.name})
 
             }else{
@@ -379,10 +380,10 @@ const convertObjectToArray = (obj) => {
                 }
             }
             let drawarrtosend=convertObjectToArray(drawtosend);
-            if(singledistributor.haddaloud){
+            // if(singledistributor.haddaloud){
                 singledistributor.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singledistributor._id})
-            }
-            if(singledistributor.haddaloud && singledistributor.role!=="merchant" && singledistributor.limitsetting){
+            // }
+            if(singledistributor.role!=="merchant" && singledistributor.limitsetting){
                 majorsalesreport.push({drawarrtosend,limits:singledistributor.limitsetting,username:singledistributor.username,name:singledistributor.name})
 
             }else{
@@ -1464,7 +1465,7 @@ else{
         secondprize5:drawinfo[0].secondprize5,
         firstprize:drawinfo[0].firstprize
             }
-            majorsalesreport.push({drawarrtosend:tempdrawarrtosend,name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(drawarrtosend,obj,singledistributor)})
+            majorsalesreport.push({drawarrtosend:tempdrawarrtosend,name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)})
         }
       res.status(200).json({majorsalesreport,secondprize1:drawinfo[0].secondprize1,
         secondprize2:drawinfo[0].secondprize2,
@@ -1535,7 +1536,7 @@ else{
         secondprize5:drawinfo[0].secondprize5,
         firstprize:drawinfo[0].firstprize
             }
-            majorsalesreport.push({drawarrtosend:tempdrawarrtosend,name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(drawarrtosend,obj,singledistributor)})
+            majorsalesreport.push({drawarrtosend:tempdrawarrtosend,name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)})
         }
        
       res.status(200).json({majorsalesreport,secondprize1:drawinfo[0].secondprize1,
@@ -1605,7 +1606,7 @@ else{
         secondprize5:drawinfo[0].secondprize5,
         firstprize:drawinfo[0].firstprize
             }
-            majorsalesreport.push({drawarrtosend:tempdrawarrtosend,name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(drawarrtosend,obj,singledistributor)})
+            majorsalesreport.push({drawarrtosend:tempdrawarrtosend,name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)})
         }
        
       res.status(200).json({
@@ -1678,7 +1679,7 @@ else{
         secondprize5:drawinfo[0].secondprize5,
         firstprize:drawinfo[0].firstprize
             }
-            majorsalesreport.push({drawarrtosend:tempdrawarrtosend,name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(drawarrtosend,obj,singledistributor)})
+            majorsalesreport.push({drawarrtosend:tempdrawarrtosend,name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)})
         }
       res.status(200).json({majorsalesreport,secondprize1:drawinfo[0].secondprize1,
         secondprize2:drawinfo[0].secondprize2,
@@ -1952,6 +1953,10 @@ else{
     try {
       let drawId = req.body.date;
       let drawinfo = await draw.find({ date: drawId }).session(session);
+
+    //   if(!drawinfo[0].balanceupdated){
+
+      
       if (!drawinfo[0] || !drawinfo[0].firstprize || drawinfo[0].firstprize === "") {
         await session.abortTransaction();
         session.endSession();
@@ -1985,12 +1990,34 @@ else{
           secondprize5: drawinfo[0].secondprize5,
           firstprize: drawinfo[0].firstprize,
         };
+        // if(singledistributor.haddaloud){
+        //     singledistributor.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singledistributor._id})
+        // }
+        // if(singledistributor.haddaloud && singledistributor.role!=="merchant" && singledistributor.limitsetting){
+        //     majorsalesreport.push({drawarrtosend,limits:singledistributor.limitsetting,username:singledistributor.username,name:singledistributor.name})
+
+        // }else{
+        //     majorsalesreport.push({drawarrtosend,limits:singledistributor.limit,username:singledistributor.username,name:singledistributor.name})
+        // }
+
+        let tempdrawarrtosend=[...drawarrtosend]
+        if(singledistributor.haddaloud && singledistributor.role !== "merchant" && singledistributor.limitsetting){
+            tempdrawarrtosend =  applyuplimits({drawarrtosend,limits:singledistributor.limitsetting})
+        }
         majorsalesreport.push({
-          drawarrtosend,
-          comission: singledistributor.comission,
-          prize: gettheprizecalculation(drawarrtosend, obj, singledistributor),
-          user: singledistributor,
-        });
+            drawarrtosend:tempdrawarrtosend,
+            name:singledistributor.name,
+            username:singledistributor.username,
+            comission:singledistributor.comission,
+            prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)
+        })
+
+        // majorsalesreport.push({
+        //   drawarrtosend,
+        //   comission: singledistributor.comission,
+        //   prize: gettheprizecalculation(drawarrtosend, obj, singledistributor),
+        //   user: singledistributor,
+        // });
       }
       const tempobj = {
         majorsalesreport,
@@ -2004,21 +2031,31 @@ else{
       let calculatedData = calculate(tempobj);
       // Process users sequentially
       for (const obj of calculatedData) {
-        console.log(obj)
         let User = await user.findOne({ _id: obj.id }).session(session);
         if (!User) {
           throw new Error(`User not found: ${obj.id}`);
         }
         if (User.role === "merchant") {
           User.payment.balanceupline = Number(User.payment.balanceupline) - (Number(obj.grandTotal) - Number(obj.safitotal));
+          let totalamount = Number(obj.grandTotal) + Number(obj.safitotal)
+          let data = { cash:totalamount, credit:0, type:"Draw", description:"Payment updated with title : "+  drawinfo[0].title , amount : totalamount, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
+        let paymentData = await payment.create([data], { session });
         } else {
           User.payment.balanceupline = Number(User.payment.balanceupline)-Number(obj.nettotal);
+          let totalamount = Number(obj.nettotal)
+          let data = { cash:totalamount, credit:0, type:"Draw", description:"Payment updated with title : "+  drawinfo[0].title , amount : totalamount, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
+          let paymentData = await payment.create([data], { session });
         }
+        
         await User.save({ session });
+        
       }
       await session.commitTransaction();
       session.endSession();
       res.status(200).json({ message: "Done" });
+    // }else{
+    //     res.status(500).json({ message: "Balance Updated Already for this draw"});
+    // }
     } catch (error) {
       await session.abortTransaction();
       session.endSession();

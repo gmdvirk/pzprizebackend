@@ -21,6 +21,7 @@ const drawSchema = new mongoose.Schema({
     secondprize4: String,
     secondprize5: String,
     addedby: String,
+    balanceupdated:Boolean,
     type: {
         type: Map,
         of: Number

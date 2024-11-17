@@ -39,18 +39,51 @@ let getAllDraws= async(req , res)=>{
 
     return { date, time };
 }
+// let getAllActiveDraws = async (req, res) => {
+//   let currentDatetime = new Date();
+
+//   let currentDate = currentDatetime.toISOString().split('T')[0]; // Extracts the date in YYYY-MM-DD format
+//   let currentTime = currentDatetime.toTimeString().split(' ')[0].slice(0, 5); // Extracts the time in HH:MM format
+
+//   try {
+//       let draws = await draw.find({
+//           status: 'active',
+//           $or: [
+//               { date: { $gt: currentDate } },
+//               { date: currentDate, time: { $gt: currentTime } }
+//           ]
+//       });
+
+//       if (draws.length > 0) {
+//           res.status(200).json(draws);
+//       } else {
+//           res.status(404).json({ "Message": "No active draws found" });
+//       }
+//   } catch (error) {
+//       res.status(500).json({ "Message": "Error", "Error": error.message });
+//   }
+// };
 let getAllActiveDraws = async (req, res) => {
   let currentDatetime = new Date();
 
-  let currentDate = currentDatetime.toISOString().split('T')[0]; // Extracts the date in YYYY-MM-DD format
-  let currentTime = currentDatetime.toTimeString().split(' ')[0].slice(0, 5); // Extracts the time in HH:MM format
+  // Convert current UTC time to the desired timezone (UTC-5, for example, for PDT)
+  let timezoneOffset = 5 * 60 * 60 * 1000;  // 5 hours in milliseconds
+  let currentAdjustedDatetime = new Date(currentDatetime.getTime() - timezoneOffset);
+
+  let currentDate = currentAdjustedDatetime.toISOString().split('T')[0]; // Extracts the date in YYYY-MM-DD format
+  let currentTime = currentAdjustedDatetime.toTimeString().split(' ')[0].slice(0, 5); // Extracts the time in HH:MM format
 
   try {
       let draws = await draw.find({
           status: 'active',
           $or: [
+              // Condition for draws on dates after today
               { date: { $gt: currentDate } },
-              { date: currentDate, time: { $gt: currentTime } }
+              // Condition for draws on the current date but with a time greater than the current adjusted time
+              { 
+                date: currentDate, 
+                time: { $gt: currentTime } 
+              }
           ]
       });
 
@@ -63,6 +96,7 @@ let getAllActiveDraws = async (req, res) => {
       res.status(500).json({ "Message": "Error", "Error": error.message });
   }
 };
+
 let getAllDeactiveOrExpiredDraws = async (req, res) => {
   let currentDatetime = new Date();
 
@@ -131,7 +165,7 @@ let getlasttendrawsmerchant= async (req, res) => {
         res.status(500).json({status:false,"Message":"No two draws can be on same date"})
       }else{
         let addedbyuserid = req.Tokendata._id
-        let data = {oversaleonedigita:0,oversaleonedigitb:0,oversaletwodigita:0,oversaletwodigitb:0,oversalethreedigita:0,oversalethreedigitb:0,oversalefourdigita:0,oversalefourdigitb:0,oversalefivedigita:0,oversalefivedigitb:0,title,time,date,onedigita,onedigitb,twodigita,twodigitb,threedigita,threedigitb,fourdigita,fourdigitb,fivedigita,fivedigitb,soldonedigita:0,soldonedigitb:0,soldtwodigita:0,soldtwodigitb:0,soldthreedigita:0,soldthreedigitb:0,soldfourdigita:0,soldfourdigitb:0,soldfivedigita:0,soldfivedigitb:0,firstprize:"",secondprize1:"",secondprize2:"",secondprize3:"",secondprize4:"",secondprize5:"",status,addedby:addedbyuserid};
+        let data = {balanceupdated:false,oversaleonedigita:0,oversaleonedigitb:0,oversaletwodigita:0,oversaletwodigitb:0,oversalethreedigita:0,oversalethreedigitb:0,oversalefourdigita:0,oversalefourdigitb:0,oversalefivedigita:0,oversalefivedigitb:0,title,time,date,onedigita,onedigitb,twodigita,twodigitb,threedigita,threedigitb,fourdigita,fourdigitb,fivedigita,fivedigitb,soldonedigita:0,soldonedigitb:0,soldtwodigita:0,soldtwodigitb:0,soldthreedigita:0,soldthreedigitb:0,soldfourdigita:0,soldfourdigitb:0,soldfivedigita:0,soldfivedigitb:0,firstprize:"",secondprize1:"",secondprize2:"",secondprize3:"",secondprize4:"",secondprize5:"",status,addedby:addedbyuserid};
         draw.create(data).then(data=>{
             res.status(200).json({status:true,data})
         }).catch(err=>{
