@@ -61,7 +61,8 @@ let getAllDistributors = async(req , res)=>{
  
 }
 let getBalance=async(req,res)=>{
-  try{let id = req.Tokendata._id;
+  try{
+    let id = req.Tokendata._id;
     let users = await user.findOne({_id:id});
     if(users)
     {

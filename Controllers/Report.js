@@ -1148,6 +1148,65 @@ const convertObjectToArray = (obj) => {
         res.status(500).json({ message: "Internal server error" });
     }
   };
+  let getPrefixes = async (req, res) => {
+try{let obj=await draw.findOne({date:req.params.date})
+    let firstprefixes = [];
+    let secondprefixes1 = [];
+    let secondprefixes2 = [];
+    let secondprefixes3 = [];
+    let secondprefixes4 = [];
+    let secondprefixes5 = [];
+    let searchString = obj.firstprize;
+    if(obj.firstprize!==''&&obj.firstprize!=="0"){// Create prefixes
+        
+    for (let i = 1; i <= searchString.length; i++) {
+        firstprefixes.push(searchString.substring(0, i));
+    }
+    }
+    if(obj.secondprize1!==''&&obj.secondprize1!=="0"){// Create prefixes
+        searchString=obj.secondprize1
+        for (let i = 1; i <= searchString.length; i++) {
+            secondprefixes1.push(searchString.substring(0, i));
+        }
+        }
+    if(obj.secondprize2!==''&&obj.secondprize2!=="0"){// Create prefixes
+        searchString=obj.secondprize2
+            for (let i = 1; i <= searchString.length; i++) {
+                secondprefixes2.push(searchString.substring(0, i));
+            }
+     }
+     if(obj.secondprize3!==''&&obj.secondprize3!=="0"){// Create prefixes
+        searchString=obj.secondprize3
+        for (let i = 1; i <= searchString.length; i++) {
+            secondprefixes3.push(searchString.substring(0, i));
+        }
+        }
+    if(obj.secondprize4!==''&&obj.secondprize4!=="0"){// Create prefixes
+        searchString=obj.secondprize4
+            for (let i = 1; i <= searchString.length; i++) {
+                secondprefixes4.push(searchString.substring(0, i));
+            }
+    }
+    if(obj.secondprize5!==''&&obj.secondprize5!=="0"){// Create prefixes
+        searchString=obj.secondprize5
+            for (let i = 1; i <= searchString.length; i++) {
+                secondprefixes5.push(searchString.substring(0, i));
+            }
+    }
+    let prefixes = {
+        firstprefixes,
+        secondprefixes1,
+        secondprefixes2,
+        secondprefixes3,
+        secondprefixes4,
+        secondprefixes5,
+
+    };
+    res.status(200).json(prefixes)}
+    catch(e){
+        res.status(500).json({ message: "Internal server error" });
+    }
+  }
   function gettheprizecalculation(drawarrtosend,obj,prize){
     let tempobj={
         f:0,
@@ -1921,16 +1980,22 @@ else{
       let totalSs = report.prize.tempobj.s;
       let totalF = report.prize.tempsale.f;
       let totalS = report.prize.tempsale.s;
+      let totalFfour = report.prize.tempsalefour.f;
+      let totalSfour = report.prize.tempsalefour.s;
   
       const totalPrizes = Number(totalFp) + Number(totalSs);
       const commissionValue = report.comission.comission;
-      const commissionAmount = report.comission.comission===0?report.comission.comission:(((totalF + totalS)*Number(report.comission.comission))/100);
-      const pcPercentageAmount = report.comission.pcpercentage===0?report.comission.pcpercentage:(((totalF + totalS)*Number(report.comission.pcpercentage))/100);
+    //   const commissionAmount = report.comission.comission===0?report.comission.comission:(((totalF + totalS)*Number(report.comission.comission))/100);
+    //   const pcPercentageAmount = report.comission.pcpercentage===0?report.comission.pcpercentage:(((totalF + totalS)*Number(report.comission.pcpercentage))/100);
+    
+    const commissionAmount = report.comission.comission===0?report.comission.comission:(((totalF + totalS)*Number(report.comission.comission))/100);
+    const pcPercentageAmount = report.comission.pcpercentage===0?report.comission.pcpercentage:(((totalFfour + totalSfour)*Number(report.comission.pcpercentage))/100);
       const pcPercentageValue = report.comission.pcpercentage;
 
-      const grandTotal = totalF + totalS;
+      const grandTotal = totalF + totalS+totalFfour+totalSfour;
       const safitotal = grandTotal - pcPercentageAmount - commissionAmount;
-      const nettotal = (totalF + totalS)- Number(totalPrizes)-pcPercentageAmount-commissionAmount
+    //   const nettotal = (totalF + totalS)- Number(totalPrizes)-pcPercentageAmount-commissionAmount
+    const nettotal =  (totalF + totalS+totalFfour+totalSfour)- Number(totalPrizes)-pcPercentageAmount-commissionAmount
       const user = report.user;
       dataarr.push({
         commissionValue,
@@ -1954,7 +2019,7 @@ else{
       let drawId = req.body.date;
       let drawinfo = await draw.find({ date: drawId }).session(session);
 
-    //   if(!drawinfo[0].balanceupdated){
+      if(!drawinfo[0].balanceupdated){
 
       
       if (!drawinfo[0] || !drawinfo[0].firstprize || drawinfo[0].firstprize === "") {
@@ -1962,7 +2027,7 @@ else{
         session.endSession();
         return res.status(200).json({ message: "Draw not posted yet" });
       }
-  
+      
       let distributorusers1 = await user.find({}).session(session);
       let distributorusers=distributorusers1.filter((obj)=>obj.role !=="superadmin")
       let majorsalesreport = [];
@@ -2008,6 +2073,7 @@ else{
             drawarrtosend:tempdrawarrtosend,
             name:singledistributor.name,
             username:singledistributor.username,
+            user:singledistributor,
             comission:singledistributor.comission,
             prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)
         })
@@ -2027,6 +2093,7 @@ else{
         secondprize4: drawinfo[0].secondprize4,
         secondprize5: drawinfo[0].secondprize5,
         firstprize: drawinfo[0].firstprize,
+        
       };
       let calculatedData = calculate(tempobj);
       // Process users sequentially
@@ -2038,24 +2105,27 @@ else{
         if (User.role === "merchant") {
           User.payment.balanceupline = Number(User.payment.balanceupline) - (Number(obj.grandTotal) - Number(obj.safitotal));
           let totalamount = Number(obj.grandTotal) + Number(obj.safitotal)
-          let data = { cash:totalamount, credit:0, type:"Draw", description:"Payment updated with title : "+  drawinfo[0].title , amount : totalamount, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
+          let availablebalance = User.payment.availablebalance;
+          let data = { cash:totalamount*-1, credit:0, type:"Draw", description: drawinfo[0].title +" and Date : " + drawinfo[0].date, amount : totalamount*-1, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
         let paymentData = await payment.create([data], { session });
         } else {
           User.payment.balanceupline = Number(User.payment.balanceupline)-Number(obj.nettotal);
           let totalamount = Number(obj.nettotal)
-          let data = { cash:totalamount, credit:0, type:"Draw", description:"Payment updated with title : "+  drawinfo[0].title , amount : totalamount, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
+          let availablebalance = User.payment.availablebalance;
+          let data = { cash:totalamount*-1, credit:0, type:"Draw", description:drawinfo[0].title +" and Date : " + drawinfo[0].date, amount : totalamount*-1, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
           let paymentData = await payment.create([data], { session });
         }
-        
         await User.save({ session });
-        
       }
+      let drawupdate = await draw.findOne({ _id: drawinfo[0]._id }).session(session);
+      drawupdate.balanceupdated=true
+      await drawupdate.save({ session });
       await session.commitTransaction();
       session.endSession();
       res.status(200).json({ message: "Done" });
-    // }else{
-    //     res.status(500).json({ message: "Balance Updated Already for this draw"});
-    // }
+    }else{
+        res.status(500).json({ message: "Balance Updated Already for this draw"});
+    }
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
@@ -2169,5 +2239,6 @@ module.exports = {
     getBalanceUpdated,
     getHaddLimitReportforalldistributoradminbillsheet,
     getAllSellBill,
-    getTotalSaleforadmin
+    getTotalSaleforadmin,
+    getPrefixes
 };
