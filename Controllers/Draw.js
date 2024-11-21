@@ -100,8 +100,8 @@ let getAllActiveDraws = async (req, res) => {
 let getAllDeactiveOrExpiredDraws = async (req, res) => {
   let currentDatetime = new Date();
 
-  let currentDate = currentDatetime.toISOString().split('T')[0]; // Extracts the date in YYYY-MM-DD format
-  let currentTime = currentDatetime.toTimeString().split(' ')[0].slice(0, 5); // Extracts the time in HH:MM format
+  let currentDate = currentDatetime.toISOString().split('T')[0]; // YYYY-MM-DD
+  let currentTime = currentDatetime.toTimeString().split(' ')[0].slice(0, 5); // HH:MM
 
   try {
     let draws = await draw.find({
@@ -110,7 +110,9 @@ let getAllDeactiveOrExpiredDraws = async (req, res) => {
         {
           status: 'active',
           $or: [
+            // Compare dates as strings
             { date: { $lt: currentDate } },
+            // For the same date, compare time as strings
             { date: currentDate, time: { $lt: currentTime } }
           ]
         }
@@ -126,6 +128,7 @@ let getAllDeactiveOrExpiredDraws = async (req, res) => {
     res.status(500).json({ "Message": "Error", "Error": error.message });
   }
 };
+
 let getLastTenDraws = async (req, res) => {
 
   try {

@@ -1613,9 +1613,9 @@ else{
     try {
         let drawId=req.body.date
         let distributorusers1=await user.find({_id:req.Tokendata._id})
-        // let distributorusers2=await user.find({addedby:req.Tokendata._id})
-        // let distributoruser3=distributorusers2.filter((obj)=>obj.addedby[obj.addedby.length-1]==req.Tokendata._id)
-        let distributorusers=[...distributorusers1]
+        let distributorusers2=await user.find({addedby:req.Tokendata._id})
+        let distributoruser3=distributorusers2.filter((obj)=>obj.addedby[obj.addedby.length-1]==req.Tokendata._id)
+        let distributorusers=[...distributorusers1,...distributoruser3]
         // [...distributorusers1,...distributoruser3]
         let drawinfo=await draw.find({date:drawId})
         let majorsalesreport=[]
