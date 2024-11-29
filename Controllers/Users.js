@@ -386,6 +386,7 @@ const editLimit = async (req, res) => {
       );
 
       if (hasChanged) {
+        
         let tempdata={
           userid: data.userid,
           drawid: data.drawid,
@@ -401,7 +402,6 @@ const editLimit = async (req, res) => {
 
         // Update the current limit
         let updatedLimit = await Limit.findByIdAndUpdate(id, tempdata, { new: true });
-
         res.status(200).json({ status: true, data: updatedLimit });
       } else {
         let tempdata={
