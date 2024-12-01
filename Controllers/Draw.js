@@ -325,9 +325,45 @@ let getDrawfieldsvalue = async (req, res) => {
     res.status(500).json({ status: false, "Message": error.message });
   }
 };
+let getDrawInfo= async (req, res) => {
+
+  try {
+      let draws = await draw.find({}, { _id:1, 
+        title: 1,
+        time: 1,
+        date: 1,
+        onedigita: 1,
+        onedigitb: 1,
+        twodigita: 1,
+        twodigitb: 1,
+        threedigita: 1,
+        threedigitb: 1,
+        fourdigita: 1,
+        fourdigitb: 1,
+        status: 1,
+        firstprize: 1,
+        secondprize1: 1,
+        secondprize2: 1,
+        secondprize3: 1,
+        secondprize4: 1,
+        secondprize5: 1,
+        addedby: 1,
+        balanceupdated:1,
+
+      }).sort({ createdAt: -1 });
+      if (draws.length > 0) {
+          res.status(200).json(draws);
+      } else {
+          res.status(404).json({ "Message": "No active draws found" });
+      }
+  } catch (error) {
+      res.status(500).json({ "Message": "Error", "Error": error.message });
+  }
+};
 
   module.exports  ={
     getAllDraws,
+    getDrawInfo,
     Createdraw,
     updatedrawById,
     activatedrawById,
