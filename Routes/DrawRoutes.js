@@ -1,4 +1,4 @@
-const {getAllDraws,getAllDeactiveOrExpiredDraws,getDrawInfo,getlasttendrawsmerchant,Createdraw,getAllActiveDraws,updatedrawById,getDrawfieldsvalue,activatedrawById,deactivatedrawById,getLastTenDraws } = require("../Controllers/Draw")
+const {getAllDraws,getAllDeactiveOrExpiredDrawsInfo,getAllDeactiveOrExpiredDraws,getDrawInfo,getlasttendrawsmerchant,Createdraw,getAllActiveDraws,updatedrawById,getDrawfieldsvalue,activatedrawById,deactivatedrawById,getLastTenDraws } = require("../Controllers/Draw")
 const express = require("express");
 const { AuthenticateUser,Authenticatedornot } = require("../utils");
 
@@ -11,6 +11,7 @@ router.patch("/activatedraw"  ,AuthenticateUser,  activatedrawById )
 router.patch("/deactivatedraw"  ,AuthenticateUser,  deactivatedrawById )
 router.get("/getallactivedraws"  ,AuthenticateUser,  getAllActiveDraws )
 router.get("/getalldeactivedraws"  ,AuthenticateUser,  getAllDeactiveOrExpiredDraws )
+router.get("/getalldeactivedrawsinfo"  ,AuthenticateUser,  getAllDeactiveOrExpiredDrawsInfo )
 router.get("/getlasttendraws"  ,AuthenticateUser,  getLastTenDraws )
 router.post("/getdrawfieldsvalue"  ,AuthenticateUser,  getDrawfieldsvalue )
 router.get("/getlasttendrawsmerchant"  ,AuthenticateUser,  getlasttendrawsmerchant )

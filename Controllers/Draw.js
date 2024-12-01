@@ -129,6 +129,62 @@ let getAllDeactiveOrExpiredDraws = async (req, res) => {
   }
 };
 
+
+let getAllDeactiveOrExpiredDrawsInfo = async (req, res) => {
+  let currentDatetime = new Date();
+
+  let currentDate = currentDatetime.toISOString().split('T')[0]; // YYYY-MM-DD
+  let currentTime = currentDatetime.toTimeString().split(' ')[0].slice(0, 5); // HH:MM
+
+  try {
+    let draws = await draw.find({
+      $or: [
+        { status: 'deactive' },
+        {
+          status: 'active',
+          $or: [
+            // Compare dates as strings
+            { date: { $lt: currentDate } },
+            // For the same date, compare time as strings
+            { date: currentDate, time: { $lt: currentTime } }
+          ]
+        }
+      ]
+    },
+    { _id:1, 
+      title: 1,
+      time: 1,
+      date: 1,
+      onedigita: 1,
+      onedigitb: 1,
+      twodigita: 1,
+      twodigitb: 1,
+      threedigita: 1,
+      threedigitb: 1,
+      fourdigita: 1,
+      fourdigitb: 1,
+      status: 1,
+      firstprize: 1,
+      secondprize1: 1,
+      secondprize2: 1,
+      secondprize3: 1,
+      secondprize4: 1,
+      secondprize5: 1,
+      addedby: 1,
+      balanceupdated:1,
+    }
+  );
+
+    if (draws.length > 0) {
+      res.status(200).json(draws);
+    } else {
+      res.status(404).json({ "Message": "No deactive or expired draws found" });
+    }
+  } catch (error) {
+    res.status(500).json({ "Message": "Error", "Error": error.message });
+  }
+};
+
 let getLastTenDraws = async (req, res) => {
 
   try {
@@ -373,5 +429,6 @@ let getDrawInfo= async (req, res) => {
     getDrawfieldsvalue,
     getLastTenDraws,
     getlasttendrawsmerchant,
-    getAllDeactiveOrExpiredDraws
+    getAllDeactiveOrExpiredDraws,
+    getAllDeactiveOrExpiredDrawsInfo
 }
