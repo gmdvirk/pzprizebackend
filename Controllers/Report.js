@@ -583,13 +583,7 @@ const convertObjectToArray = (obj) => {
         let allsales =await sale.find({type:"sale",drawid:drawinfo[0]._id})
         for (let singledistributor of distributorusers){
             let userid=singledistributor._id
-            // let users=await getAllUsersAddedBy(userid);
             let totalsale=[]
-            // for (let singleuser of users){
-            //     // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
-            //     let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
-            //     totalsale=[...totalsale,...sales]
-            // }
             let sales= allsales.filter((obj)=>obj.addedby.includes(userid))
             totalsale=[...totalsale,...sales]
             let alldraws=[]
@@ -602,9 +596,10 @@ const convertObjectToArray = (obj) => {
                     drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
                 }
             }
+           
             let drawarrtosend=convertObjectToArray(drawtosend);
             
-          
+            
             let tempdrawarrtosend=[]
             if(req.body.type==="uplimit"){
                 // if(singledistributor.haddaloud){
@@ -612,12 +607,15 @@ const convertObjectToArray = (obj) => {
                     if(singledistributor.limitsetting){
                         tempdrawarrtosend=applyuplimits({drawarrtosend,limits:singledistributor.limitsetting})
                     }
-                    // else{
-                    //     tempdrawarrtosend=applyuplimits({drawarrtosend,limits:singledistributor.limit})
-                    // }
+                    else{
+                        tempdrawarrtosend=[...drawarrtosend]
+                    }
                 // }
+            }else{
+                tempdrawarrtosend=[...drawarrtosend]
             }
             tempmajor=[...tempmajor,...tempdrawarrtosend]
+            
             // else{
             //     tempdrawarrtosend=applydownlimit({drawarrtosend,limits:singledistributor.limit})
             // }
