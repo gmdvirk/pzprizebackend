@@ -15,10 +15,10 @@ const userSchema = new mongoose.Schema({
     blocked: Boolean,
     upline:Number,
     payment:{
-        cash:Number,
-        credit:Number,
-        balanceupline:Number,
-        availablebalance:Number,
+        cash:{ type: Number, required: true},
+        credit:{ type: Number, required: true},
+        balanceupline:{ type: Number, required: true},
+        availablebalance:{ type: Number, required: true, default: 0},
     },
     comission:{
         comission:Number,

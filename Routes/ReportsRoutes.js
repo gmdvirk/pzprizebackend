@@ -27,6 +27,7 @@ const {Addsheetmerchant,getSheetsByDate,getDrawById,getSalesBySheet,
     getHaddLimitReportforalldistributoradminbillsheet,
     getAllSellBill,
     getTotalSaleforadmin,
+    getReverseBalanceUpdated,
     getPrefixes
 
 } = require("../Controllers/Report")
@@ -58,6 +59,7 @@ router.post("/getSearchBundleDistributor" ,AuthenticateUser ,  getSearchBundleDi
 router.post("/getSearchBundleMerchant" ,AuthenticateUser ,  getSearchBundleMerchant )
 router.get("/getHaddLimitAloudornot" ,AuthenticateUser ,  getHaddLimitAloudornot )
 router.post("/getBalanceUpdated" ,AuthenticateUser ,  getBalanceUpdated )
+router.post("/getReverseBalanceUpdated" ,AuthenticateUser ,  getReverseBalanceUpdated )
 router.post("/getSalesBySheet" ,AuthenticateUser ,  getSalesBySheet )
 router.post("/getAllSellBill" ,AuthenticateUser ,  getAllSellBill )
 router.get("/getTotalSaleforadmin/:date" ,AuthenticateUser ,  getTotalSaleforadmin )

@@ -99,7 +99,32 @@ let getSalesBySheet = async (req, res) => {
             }
             res.status(200).json(sales);
           }
-        }else{
+        }
+        else if(sheet==="combinedsjkngkfjgnfkj"){
+            if(report==="combined"){
+                const sales = await sale.find({type:"sale",addedby: req.Tokendata._id });
+                const oversales = await sale.find({type:"oversale",addedby: req.Tokendata._id});
+                
+                res.status(200).json({sales,oversales});
+          }
+          else if (report==="generalsale"){
+            const sales = await sale.find({type:"sale",addedby: req.Tokendata._id});
+    
+            if (!sales.length) {
+                return res.status(200).json([]);
+            }
+            res.status(200).json(sales);
+          }
+          else if (report==="oversale"){
+            const sales = await sale.find({type:"oversale",addedby: req.Tokendata._id});
+    
+            if (!sales.length) {
+                return res.status(200).json([]);
+            }
+            res.status(200).json(sales);
+          }
+        }
+        else{
             if(report==="combined"){
                 const sales = await sale.find({type:"sale",sheetid: sheet });
                 const oversales = await sale.find({type:"oversale", sheetid: sheet });
@@ -601,7 +626,7 @@ const convertObjectToArray = (obj) => {
             
             
             let tempdrawarrtosend=[]
-            if(req.body.type==="uplimit"){
+            // if(req.body.type==="uplimit"){
                 // if(singledistributor.haddaloud){
                         singledistributor.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singledistributor._id})
                     if(singledistributor.limitsetting){
@@ -611,9 +636,10 @@ const convertObjectToArray = (obj) => {
                         tempdrawarrtosend=[...drawarrtosend]
                     }
                 // }
-            }else{
-                tempdrawarrtosend=[...drawarrtosend]
-            }
+            // }
+            // else{
+            //     tempdrawarrtosend=[...drawarrtosend]
+            // }
             tempmajor=[...tempmajor,...tempdrawarrtosend]
             
             // else{
@@ -643,15 +669,29 @@ const convertObjectToArray = (obj) => {
             }
         }
         let drawarrtosend=convertObjectToArray(drawtosend);
-        let tempdrawarrtosend=applyuplimits({drawarrtosend,limits:templimit})
-        majorsalesreport.push({name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)})
-      res.status(200).json({majorsalesreport,
-        secondprize1:drawinfo[0].secondprize1,
-        secondprize2:drawinfo[0].secondprize2,
-        secondprize3:drawinfo[0].secondprize3,
-        secondprize4:drawinfo[0].secondprize4,
-        secondprize5:drawinfo[0].secondprize5,
-        firstprize:drawinfo[0].firstprize});
+        if(req.body.type==="uplimit"){
+            let tempdrawarrtosend=applyuplimits({drawarrtosend,limits:templimit})
+            majorsalesreport.push({name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)})
+            res.status(200).json({majorsalesreport,
+              secondprize1:drawinfo[0].secondprize1,
+              secondprize2:drawinfo[0].secondprize2,
+              secondprize3:drawinfo[0].secondprize3,
+              secondprize4:drawinfo[0].secondprize4,
+              secondprize5:drawinfo[0].secondprize5,
+              firstprize:drawinfo[0].firstprize});
+        }else if(req.body.type==="downlimit"){
+            let tempdrawarrtosend=applydownlimit({drawarrtosend,limits:templimit})
+            majorsalesreport.push({name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)})
+            res.status(200).json({majorsalesreport,
+              secondprize1:drawinfo[0].secondprize1,
+              secondprize2:drawinfo[0].secondprize2,
+              secondprize3:drawinfo[0].secondprize3,
+              secondprize4:drawinfo[0].secondprize4,
+              secondprize5:drawinfo[0].secondprize5,
+              firstprize:drawinfo[0].firstprize});
+        }
+        
+  
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });
     }
@@ -2048,16 +2088,6 @@ else{
           secondprize5: drawinfo[0].secondprize5,
           firstprize: drawinfo[0].firstprize,
         };
-        // if(singledistributor.haddaloud){
-        //     singledistributor.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singledistributor._id})
-        // }
-        // if(singledistributor.haddaloud && singledistributor.role!=="merchant" && singledistributor.limitsetting){
-        //     majorsalesreport.push({drawarrtosend,limits:singledistributor.limitsetting,username:singledistributor.username,name:singledistributor.name})
-
-        // }else{
-        //     majorsalesreport.push({drawarrtosend,limits:singledistributor.limit,username:singledistributor.username,name:singledistributor.name})
-        // }
-
         let tempdrawarrtosend=[...drawarrtosend]
         if(singledistributor.haddaloud && singledistributor.role !== "merchant" && singledistributor.limitsetting){
             tempdrawarrtosend =  applyuplimits({drawarrtosend,limits:singledistributor.limitsetting})
@@ -2071,12 +2101,112 @@ else{
             prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)
         })
 
-        // majorsalesreport.push({
-        //   drawarrtosend,
-        //   comission: singledistributor.comission,
-        //   prize: gettheprizecalculation(drawarrtosend, obj, singledistributor),
-        //   user: singledistributor,
-        // });
+      }
+      const tempobj = {
+        majorsalesreport,
+        secondprize1: drawinfo[0].secondprize1,
+        secondprize2: drawinfo[0].secondprize2,
+        secondprize3: drawinfo[0].secondprize3,
+        secondprize4: drawinfo[0].secondprize4,
+        secondprize5: drawinfo[0].secondprize5,
+        firstprize: drawinfo[0].firstprize,
+        
+      };
+      let calculatedData = calculate(tempobj);
+      for (const obj of calculatedData) {
+        let User = await user.findOne({ _id: obj.id }).session(session);
+        if (!User) {
+          throw new Error(`User not found: ${obj.id}`);
+        }
+        if (User.role === "merchant") {
+          User.payment.balanceupline = Number(User.payment.balanceupline) - (Number(obj.nettotal) );
+          let totalamount =  Number(obj.nettotal)
+
+          let availablebalance = (User.payment.availablebalance + Number(obj.grandTotal)) - Number(obj.nettotal);
+          User.payment.availablebalance=availablebalance;
+          let data = { cash:totalamount*-1, credit:0, type:"Draw", description: drawinfo[0].title +" and Date : " + drawinfo[0].date, amount : totalamount*-1, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
+        let paymentData = await payment.create([data], { session });
+        } else {
+          User.payment.balanceupline = Number(User.payment.balanceupline)-Number(obj.nettotal);
+          let totalamount = Number(obj.nettotal)
+          let availablebalance = User.payment.availablebalance;
+          let data = { cash:totalamount*-1, credit:0, type:"Draw", description:drawinfo[0].title +" and Date : " + drawinfo[0].date, amount : totalamount*-1, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
+          let paymentData = await payment.create([data], { session });
+        }
+        await User.save({ session });
+      }
+      let drawupdate = await draw.findOne({ _id: drawinfo[0]._id }).session(session);
+      drawupdate.balanceupdated=true
+      await drawupdate.save({ session });
+      await session.commitTransaction();
+      session.endSession();
+      res.status(200).json({ message: "Done" });
+    }else{
+        res.status(500).json({ message: "Balance Updated Already for this draw"});
+    }
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      console.error("Error in getBalanceUpdated:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  };
+  let getReverseBalanceUpdated = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      let drawId = req.body.date;
+      let drawinfo = await draw.find({ date: drawId }).session(session);
+
+      if(drawinfo[0].balanceupdated){
+
+      
+      if (!drawinfo[0] || !drawinfo[0].firstprize || drawinfo[0].firstprize === "") {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(200).json({ message: "Draw not posted yet" });
+      }
+      
+      let distributorusers1 = await user.find({}).session(session);
+      let distributorusers=distributorusers1.filter((obj)=>obj.role !=="superadmin")
+      let majorsalesreport = [];
+      let allsales = await sale.find({ type: "sale", drawid: drawinfo[0]._id }).session(session);
+      for (let singledistributor of distributorusers) {
+        let userid = singledistributor._id;
+        // let users = await getAllUsersAddedBy(userid);
+        let users = distributorusers.filter((obj)=> obj.addedby.includes(singledistributor._id))
+        users.push(singledistributor)
+        let totalsale = allsales.filter((obj) => users.some(user => obj.addedby.includes(user._id)));
+        let drawtosend = totalsale.reduce((acc, singlesale) => {
+          if (!acc[singlesale.bundle]) {
+            acc[singlesale.bundle] = { bundle: singlesale.bundle, f: 0, s: 0 };
+          }
+          acc[singlesale.bundle].f += singlesale.f;
+          acc[singlesale.bundle].s += singlesale.s;
+          return acc;
+        }, {});
+        let drawarrtosend = Object.values(drawtosend);
+        let obj = {
+          secondprize1: drawinfo[0].secondprize1,
+          secondprize2: drawinfo[0].secondprize2,
+          secondprize3: drawinfo[0].secondprize3,
+          secondprize4: drawinfo[0].secondprize4,
+          secondprize5: drawinfo[0].secondprize5,
+          firstprize: drawinfo[0].firstprize,
+        };
+        let tempdrawarrtosend=[...drawarrtosend]
+        if(singledistributor.haddaloud && singledistributor.role !== "merchant" && singledistributor.limitsetting){
+            tempdrawarrtosend =  applyuplimits({drawarrtosend,limits:singledistributor.limitsetting})
+        }
+        majorsalesreport.push({
+            drawarrtosend:tempdrawarrtosend,
+            name:singledistributor.name,
+            username:singledistributor.username,
+            user:singledistributor,
+            comission:singledistributor.comission,
+            prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)
+        })
+
       }
       const tempobj = {
         majorsalesreport,
@@ -2095,17 +2225,19 @@ else{
         if (!User) {
           throw new Error(`User not found: ${obj.id}`);
         }
+        
         if (User.role === "merchant") {
-          User.payment.balanceupline = Number(User.payment.balanceupline) - (Number(obj.nettotal) );
+            
+          User.payment.balanceupline = Number(User.payment.balanceupline) + (Number(obj.nettotal) );
           let totalamount = Number(obj.grandTotal) + Number(obj.safitotal)
-          let availablebalance = User.payment.availablebalance - Number(obj.nettotal) + Number(obj.grandTotal);
-          let data = { cash:totalamount*-1, credit:0, type:"Draw", description: drawinfo[0].title +" and Date : " + drawinfo[0].date, amount : totalamount*-1, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
+          let availablebalance = User.payment.availablebalance + (Number(obj.nettotal) + Number(obj.grandTotal));
+          let data = { cash:totalamount*1, credit:0, type:"Draw", description: drawinfo[0].title +" and Date : " + drawinfo[0].date+"reversed", amount : totalamount*1, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
         let paymentData = await payment.create([data], { session });
         } else {
-          User.payment.balanceupline = Number(User.payment.balanceupline)-Number(obj.nettotal);
+          User.payment.balanceupline = Number(User.payment.balanceupline) + Number(obj.nettotal);
           let totalamount = Number(obj.nettotal)
           let availablebalance = User.payment.availablebalance;
-          let data = { cash:totalamount*-1, credit:0, type:"Draw", description:drawinfo[0].title +" and Date : " + drawinfo[0].date, amount : totalamount*-1, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
+          let data = { cash:totalamount*1, credit:0, type:"Draw", description:drawinfo[0].title +" and Date : " + drawinfo[0].date+"reversed", amount : totalamount*1, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline  };
           let paymentData = await payment.create([data], { session });
         }
         await User.save({ session });
@@ -2233,5 +2365,6 @@ module.exports = {
     getHaddLimitReportforalldistributoradminbillsheet,
     getAllSellBill,
     getTotalSaleforadmin,
-    getPrefixes
+    getPrefixes,
+    getReverseBalanceUpdated
 };
