@@ -74,9 +74,10 @@ let getSalesBySheet = async (req, res) => {
     try {
        
         const {sheet,report,date} = req.body;
+        const drawsids = await draw.findOne({date:date});
         // Fetch sales by sheet ID
         if(sheet==="sjkngkfjgnfkj"){
-            const drawsids = await draw.findOne({date:date});
+           
             if(report==="combined"){
                 const sales = await sale.find({type:"sale",sheetid: "",drawid:drawsids._id,addedby:req.Tokendata._id });
                 const oversales = await sale.find({type:"oversale", sheetid: "",drawid:drawsids._id ,addedby:req.Tokendata._id });
@@ -102,13 +103,12 @@ let getSalesBySheet = async (req, res) => {
         }
         else if(sheet==="combinedsjkngkfjgnfkj"){
             if(report==="combined"){
-                const sales = await sale.find({type:"sale",addedby: req.Tokendata._id });
-                const oversales = await sale.find({type:"oversale",addedby: req.Tokendata._id});
-                
+                const sales = await sale.find({type:"sale",drawid:drawsids._id ,addedby: req.Tokendata._id });
+                const oversales = await sale.find({type:"oversale",drawid:drawsids._id ,addedby: req.Tokendata._id});
                 res.status(200).json({sales,oversales});
           }
           else if (report==="generalsale"){
-            const sales = await sale.find({type:"sale",addedby: req.Tokendata._id});
+            const sales = await sale.find({type:"sale",drawid:drawsids._id ,addedby: req.Tokendata._id});
     
             if (!sales.length) {
                 return res.status(200).json([]);
@@ -116,7 +116,7 @@ let getSalesBySheet = async (req, res) => {
             res.status(200).json(sales);
           }
           else if (report==="oversale"){
-            const sales = await sale.find({type:"oversale",addedby: req.Tokendata._id});
+            const sales = await sale.find({type:"oversale",drawid:drawsids._id ,addedby: req.Tokendata._id});
     
             if (!sales.length) {
                 return res.status(200).json([]);
