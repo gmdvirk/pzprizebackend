@@ -658,7 +658,6 @@ let Login = async(req , res)=>{
         let User = await user.findOne({username});
         if(User)
         {
-          
           if(!User.blocked){
             if(User.password == password)
             {
@@ -670,7 +669,14 @@ let Login = async(req , res)=>{
                 let userid=User.userid;
                 if(role==="merchant"){
                   let distributorids = User.addedby
-                  let allusers = await  user.find({id:distributorids,role:"distributor"})
+                  let allusers = []
+                  for (let i=0;i<distributorids.length;i++){
+                    let temp = await  user.find({_id:distributorids[i],role:"distributor"})
+                    if(temp.length>0){
+                      allusers.push(temp[0])
+                    }
+                  }
+                 
                   let token = await jwt.sign({_id ,name, role,username,userid,distributorid:allusers[0]._id} ,
                     process.env.SECRET_KEY ,
                      {expiresIn :'30d'})
