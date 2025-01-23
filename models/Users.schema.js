@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     address: String,
     contact: String,
     haddaloud:Boolean,
+    distributorhaddaloud:Boolean,
     addedby: [String],
     key:String,
     role: String,

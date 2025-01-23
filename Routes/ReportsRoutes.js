@@ -28,7 +28,8 @@ const {Addsheetmerchant,getSheetsByDate,getDrawById,getSalesBySheet,
     getAllSellBill,
     getTotalSaleforadmin,
     getReverseBalanceUpdated,
-    getPrefixes
+    getPrefixes,
+    getDistributorHaddLimitAloudornot
 
 } = require("../Controllers/Report")
 const express = require("express");
@@ -64,5 +65,6 @@ router.post("/getSalesBySheet" ,AuthenticateUser ,  getSalesBySheet )
 router.post("/getAllSellBill" ,AuthenticateUser ,  getAllSellBill )
 router.get("/getTotalSaleforadmin/:date" ,AuthenticateUser ,  getTotalSaleforadmin )
 router.get("/getPrefixes/:date" ,AuthenticateUser ,  getPrefixes )
+router.get("/getDistributorHaddLimitAloudornot" ,AuthenticateUser ,  getDistributorHaddLimitAloudornot )
 router.post("/getHaddLimitReportforalldistributoradminbillsheet" ,AuthenticateUser ,  getHaddLimitReportforalldistributoradminbillsheet )
 module.exports = router;

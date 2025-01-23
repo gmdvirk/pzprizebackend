@@ -54,6 +54,9 @@ let DeleteMultipleSales = async (req, res) => {
 
                 let { bundle, drawid, type,buyingdetail,addedby, salenumber, f, s } = saleRecord;
                 let saleaddedby=addedby[addedby.length-1]
+                let allusers =await user.find({_id:addedby,role:"distributor"})
+                let Distributor=allusers[0]
+                let distributorid= Distributor._id
               
                 let numbertoadd1 = "", numbertoadd2 = "";
                 let userstoadd1 = "";
@@ -104,8 +107,8 @@ let DeleteMultipleSales = async (req, res) => {
                     if(type==="sale"){
                       updateData[`type.${soldnumbertoadd1}`] = Number(drawRecord.type.get(soldnumbertoadd1)) - Number(buyingdetail[1].f);
                       updateData[`type.${soldnumbertoadd2}`] = Number(drawRecord.type.get(soldnumbertoadd2)) - Number(buyingdetail[1].s);
-                      updateData[`user.${saleaddedby+soldnumbertoadd1}`]  = Number(drawRecord.user.get(saleaddedby+soldnumbertoadd1)) - Number(buyingdetail[0].f);
-                      updateData[`user.${saleaddedby+soldnumbertoadd2}`]  = Number(drawRecord.user.get(saleaddedby+soldnumbertoadd2)) - Number(buyingdetail[0].s);
+                      updateData[`user.${distributorid+soldnumbertoadd1}`]  = Number(drawRecord.user.get(distributorid+soldnumbertoadd1)) - Number(buyingdetail[0].f);
+                      updateData[`user.${distributorid+soldnumbertoadd2}`]  = Number(drawRecord.user.get(distributorid+soldnumbertoadd2)) - Number(buyingdetail[0].s);
                     }
                     else if (type === "oversale") {
                         updateData[`type.${oversalenumbertoadd1}`] = Number(drawRecord.type.get(oversalenumbertoadd1)) - Number(f);
@@ -288,12 +291,14 @@ let getMySaleDetail=async(req,res)=>{
     if (req.Tokendata.role === "merchant") {
       const salesArray = req.body.sales; // Expecting an array of sale objects
       const addedbyuserid = req.Tokendata._id;
+      let  distributorid= req.Tokendata.distributorid;
   
       const session = await mongoose.startSession();
       session.startTransaction();
   
       try {
         let User = await user.findOne({ _id: addedbyuserid }).session(session);
+        let Distributor = await user.findOne({ _id: distributorid }).session(session);
   
         // Calculate the total amount needed for all sales
         let totalF = 0;
@@ -409,28 +414,28 @@ let buyingdetail=[{from:"me",f:0,s:0},{from:"notme",f:0,s:0}]
               users.type.set(oversalenumbertoadd2, 0);
               newobj=true;
           }
-          if (!(users.user.has(addedbyuserid+soldnumbertoadd1)) || !(users.user.has(addedbyuserid+soldnumbertoadd2))) {
-            users.user.set(addedbyuserid+soldnumbertoadd1, 0);
-            users.user.set(addedbyuserid+soldnumbertoadd2, 0);
-            updateData[`user.${addedbyuserid+soldnumbertoadd2}`] =0
-            updateData[`user.${addedbyuserid+soldnumbertoadd1}`] =0
+          if (!(users.user.has(distributorid+soldnumbertoadd1)) || !(users.user.has(distributorid+soldnumbertoadd2))) {
+            users.user.set(distributorid+soldnumbertoadd1, 0);
+            users.user.set(distributorid+soldnumbertoadd2, 0);
+            updateData[`user.${distributorid+soldnumbertoadd2}`] =0
+            updateData[`user.${distributorid+soldnumbertoadd1}`] =0
           }
-          if(Number(User.purchase[userstoadd2])-Number(users.user.get(addedbyuserid+soldnumbertoadd2))>=Number(s)){
-            updateData[`user.${addedbyuserid+soldnumbertoadd2}`]=Number(users.user.get(addedbyuserid+soldnumbertoadd2))+Number(s)
+          if(Number(Distributor.purchase[userstoadd2])-Number(users.user.get(distributorid+soldnumbertoadd2))>=Number(s)){
+            updateData[`user.${distributorid+soldnumbertoadd2}`]=Number(users.user.get(distributorid+soldnumbertoadd2))+Number(s)
              buyingdetail[0].s=s
              s1=0
-             }else if(Number(User.purchase[userstoadd2])-Number(users.user.get(addedbyuserid+soldnumbertoadd2))>0){
-            s1=Number(s1)-(Number(User.purchase[userstoadd2])-Number(users.user.get(addedbyuserid+soldnumbertoadd2)))
-               updateData[`user.${addedbyuserid+soldnumbertoadd2}`]=Number(User.purchase[userstoadd2])
+             }else if(Number(Distributor.purchase[userstoadd2])-Number(users.user.get(distributorid+soldnumbertoadd2))>0){
+            s1=Number(s1)-(Number(Distributor.purchase[userstoadd2])-Number(users.user.get(distributorid+soldnumbertoadd2)))
+               updateData[`user.${distributorid+soldnumbertoadd2}`]=Number(Distributor.purchase[userstoadd2])
                buyingdetail[0].s=Number(s)-Number(s1)
              }
-             if(Number(User.purchase[userstoadd1])-Number(users.user.get(addedbyuserid+soldnumbertoadd1))>=Number(f)){
-               updateData[`user.${addedbyuserid+soldnumbertoadd1}`]=users.user.get(addedbyuserid+soldnumbertoadd1)+Number(f)
+             if(Number(Distributor.purchase[userstoadd1])-Number(users.user.get(distributorid+soldnumbertoadd1))>=Number(f)){
+               updateData[`user.${distributorid+soldnumbertoadd1}`]=users.user.get(distributorid+soldnumbertoadd1)+Number(f)
                buyingdetail[0].f=f
                f1=0
-             }else if(Number(User.purchase[userstoadd1])-Number(users.user.get(addedbyuserid+soldnumbertoadd1))>0){
-               f1=Number(f1)-(Number(User.purchase[userstoadd1])-Number(users.user.get(addedbyuserid+soldnumbertoadd1)))
-               updateData[`user.${addedbyuserid+soldnumbertoadd1}`]=Number(User.purchase[userstoadd1])
+             }else if(Number(Distributor.purchase[userstoadd1])-Number(users.user.get(distributorid+soldnumbertoadd1))>0){
+               f1=Number(f1)-(Number(Distributor.purchase[userstoadd1])-Number(users.user.get(distributorid+soldnumbertoadd1)))
+               updateData[`user.${distributorid+soldnumbertoadd1}`]=Number(Distributor.purchase[userstoadd1])
                buyingdetail[0].f=Number(f)-Number(f1)
              }
            
@@ -539,6 +544,7 @@ let buyingdetail=[{from:"me",f:0,s:0},{from:"notme",f:0,s:0}]
   
         
         let addedbyuserid = req.Tokendata._id;
+        let  distributorid= req.Tokendata.distributorid;
         const session = await mongoose.startSession();
         session.startTransaction();
   let f1=f,s1=s
@@ -547,6 +553,7 @@ let buyingdetail=[{from:"me",f:0,s:0},{from:"notme",f:0,s:0}]
         try {
           let newobj=false
             let User = await user.findOne({ _id: addedbyuserid }).session(session);
+            let Distributor = await user.findOne({ _id: distributorid }).session(session);
   
             if (!User || User.payment.availablebalance < (Number(f) + Number(s))) {
                 await session.abortTransaction();
@@ -619,28 +626,28 @@ let buyingdetail=[{from:"me",f:0,s:0},{from:"notme",f:0,s:0}]
                     users.type.set(oversalenumbertoadd2, 0);
                     newobj=true
                 }
-                if (!(users.user.has(addedbyuserid+soldnumbertoadd1)) || !(users.user.has(addedbyuserid+soldnumbertoadd2))) {
-                  users.user.set(addedbyuserid+soldnumbertoadd1, 0);
-                  users.user.set(addedbyuserid+soldnumbertoadd2, 0);
-                  updateData[`user.${addedbyuserid+soldnumbertoadd2}`] =0
-                  updateData[`user.${addedbyuserid+soldnumbertoadd1}`] =0
+                if (!(users.user.has(distributorid+soldnumbertoadd1)) || !(users.user.has(distributorid+soldnumbertoadd2))) {
+                  users.user.set(distributorid+soldnumbertoadd1, 0);
+                  users.user.set(distributorid+soldnumbertoadd2, 0);
+                  updateData[`user.${distributorid+soldnumbertoadd2}`] =0
+                  updateData[`user.${distributorid+soldnumbertoadd1}`] =0
                 }
-                  if(Number(User.purchase[userstoadd2])-Number(users.user.get(addedbyuserid+soldnumbertoadd2))>=Number(s)){
-                    updateData[`user.${addedbyuserid+soldnumbertoadd2}`]=Number(users.user.get(addedbyuserid+soldnumbertoadd2))+Number(s)
+                  if(Number(Distributor.purchase[userstoadd2])-Number(users.user.get(distributorid+soldnumbertoadd2))>=Number(s)){
+                    updateData[`user.${distributorid+soldnumbertoadd2}`]=Number(users.user.get(distributorid+soldnumbertoadd2))+Number(s)
                     buyingdetail[0].s=s
                     s1=0
-                  }else if(Number(User.purchase[userstoadd2])-Number(users.user.get(addedbyuserid+soldnumbertoadd2))>0){
-                    s1=Number(s1)-(Number(User.purchase[userstoadd2])-Number(users.user.get(addedbyuserid+soldnumbertoadd2)))
-                    updateData[`user.${addedbyuserid+soldnumbertoadd2}`]=Number(User.purchase[userstoadd2])
+                  }else if(Number(Distributor.purchase[userstoadd2])-Number(users.user.get(distributorid+soldnumbertoadd2))>0){
+                    s1=Number(s1)-(Number(Distributor.purchase[userstoadd2])-Number(users.user.get(distributorid+soldnumbertoadd2)))
+                    updateData[`user.${distributorid+soldnumbertoadd2}`]=Number(Distributor.purchase[userstoadd2])
                     buyingdetail[0].s=Number(s)-Number(s1)
                   }
-                  if(Number(User.purchase[userstoadd1])-Number(users.user.get(addedbyuserid+soldnumbertoadd1))>=Number(f)){
-                    updateData[`user.${addedbyuserid+soldnumbertoadd1}`]=users.user.get(addedbyuserid+soldnumbertoadd1)+Number(f)
+                  if(Number(Distributor.purchase[userstoadd1])-Number(users.user.get(distributorid+soldnumbertoadd1))>=Number(f)){
+                    updateData[`user.${distributorid+soldnumbertoadd1}`]=users.user.get(distributorid+soldnumbertoadd1)+Number(f)
                     buyingdetail[0].f=f
                     f1=0
-                  }else if(Number(User.purchase[userstoadd1])-Number(users.user.get(addedbyuserid+soldnumbertoadd1))>0){
-                    f1=Number(f1)-(Number(User.purchase[userstoadd1])-Number(users.user.get(addedbyuserid+soldnumbertoadd1)))
-                    updateData[`user.${addedbyuserid+soldnumbertoadd1}`]=Number(User.purchase[userstoadd1])
+                  }else if(Number(Distributor.purchase[userstoadd1])-Number(users.user.get(distributorid+soldnumbertoadd1))>0){
+                    f1=Number(f1)-(Number(Distributor.purchase[userstoadd1])-Number(users.user.get(distributorid+soldnumbertoadd1)))
+                    updateData[`user.${distributorid+soldnumbertoadd1}`]=Number(Distributor.purchase[userstoadd1])
                     buyingdetail[0].f=Number(f)-Number(f1)
                   }
                 if (((Number(users[numbertoadd1]) - Number(users.type.get(soldnumbertoadd1))) >= Number(f1)) &&

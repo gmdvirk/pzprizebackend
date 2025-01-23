@@ -526,7 +526,7 @@ if(role==="merchant"){
   let temparr=[...tempuser.addedby  ]
   
   temparr.push(addedbyuserid)
-  let data = {username,key,haddaloud:false,name,password,address,contact,payment:temppay,comission:tempcommission,limit:templimit,prize:tempprize,purchase:tempuser.purchase ,role,blocked,addedby:temparr};
+  let data = {username,key,haddaloud:false,distributorhaddaloud:false,name,password,address,contact,payment:temppay,comission:tempcommission,limit:templimit,prize:tempprize,purchase:tempuser.purchase ,role,blocked,addedby:temparr};
   user.create(data).then(data=>{
       res.status(200).json({status:true,data})
   }).catch(err=>{
@@ -536,7 +536,7 @@ if(role==="merchant"){
   let temparr=[...tempuser.addedby  ]
   
   temparr.push(addedbyuserid)
-  let data = {username,key,name,haddaloud:false,password,address,contact,payment:temppay,comission:tempcommission,limit:templimit,prize:tempprize,purchase:temppurchase ,role,blocked,addedby:temparr};
+  let data = {username,key,name,haddaloud:false,distributorhaddaloud:false,password,address,contact,payment:temppay,comission:tempcommission,limit:templimit,prize:tempprize,purchase:temppurchase ,role,blocked,addedby:temparr};
   user.create(data).then(data=>{
       res.status(200).json({status:true,data})
   }).catch(err=>{
@@ -668,10 +668,20 @@ let Login = async(req , res)=>{
                 let name = User.name;
                 let username = User.username;
                 let userid=User.userid;
-                let token = await jwt.sign({_id ,name, role,username,userid} ,
+                if(role==="merchant"){
+                  let distributorids = User.addedby
+                  let allusers = await  user.find({id:distributorids,role:"distributor"})
+                  let token = await jwt.sign({_id ,name, role,username,userid,distributorid:allusers[0]._id} ,
+                    process.env.SECRET_KEY ,
+                     {expiresIn :'30d'})
+               res.json({rest , "Success":true , token})
+                }
+                else{
+                  let token = await jwt.sign({_id ,name, role,username,userid} ,
                      process.env.SECRET_KEY ,
                       {expiresIn :'30d'})
                 res.json({rest , "Success":true , token})
+              }
             }else
             {
                 res.status(200).json({ "Success":false , "Message":"Invalid password"})
@@ -717,10 +727,21 @@ let Loginasanother = async(req , res)=>{
                 let name = User.name;
                 let username = User.username;
                 let userid=User.userid;
-                let token = await jwt.sign({_id ,name, role,username,userid} ,
-                     process.env.SECRET_KEY ,
-                      {expiresIn :'30d'})
-                res.json({rest , "Success":true , token})
+                if(role==="merchant"){
+                  let distributorids = User.addedby
+
+                  let allusers = await  user.find({_id:distributorids,role:"distributor"})
+                  let token = await jwt.sign({_id ,name, role,username,userid,distributorid:allusers[0]._id} ,
+                    process.env.SECRET_KEY ,
+                     {expiresIn :'30d'})
+               res.json({rest , "Success":true , token})
+                }else{
+                  let token = await jwt.sign({_id ,name, role,username,userid} ,
+                    process.env.SECRET_KEY ,
+                     {expiresIn :'30d'})
+               res.json({rest , "Success":true , token})
+                }
+                
         }else
         {
             res.json({ "Success":false , "Message":"User not Found"})

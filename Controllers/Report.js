@@ -274,6 +274,11 @@ async function getAllUsersAddedByDirectOnly(userId) {
     const usersnew=users.filter((obj)=>obj.addedby[(obj.addedby.length)-1]===userId)
 return usersnew;
 }
+async function getAllUsersAddedByDirectOnly1(userId) {
+    const users = await user.find({ addedby: userId });
+    const usersnew=users.filter((obj)=>obj.addedby[(obj.addedby.length)-1]==userId)
+return usersnew;
+}
 async function getAllUsersAddedBy1(userId) {
         const users = await user.find({ addedby: userId });
     return users;
@@ -285,20 +290,44 @@ const convertObjectToArray = (obj) => {
     try {
         let drawId=req.body.date
         let userid=req.body.dealer
-        // let users=await getAllUsersAddedBy(userid);
+        let users=await getAllUsersAddedByDirectOnly1(userid);
         let drawinfo=await draw.find({date:drawId})
         // let users=await user.find({role:"merchant",distributor:userid})
         if(drawinfo){
             let totalsale=[]
             let allsales =await sale.find({type:"sale",addedby:userid,drawid:drawinfo[0]._id})
             let distributoruser=await user.findById(userid)
-            // for (let singleuser of users){
-            //     // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
-            //     let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
-            //     totalsale=[...totalsale,...sales]
-            // }
-            let sales= allsales.filter((obj)=>obj.addedby.includes(userid))
+            for (let singleuser of users){
+
+
+
+                let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
+                let tempalldraws=[]
+                let tempdrawtosend2={}
+                for (let singlesale of sales){
+                    if(tempalldraws.includes(singlesale.bundle)){
+                        tempdrawtosend2[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( tempdrawtosend2[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                    }else{
+                        tempalldraws.push(singlesale.bundle)
+                        tempdrawtosend2[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                    }
+                }
+                let tempdrawarrtosend1=convertObjectToArray(tempdrawtosend2);
+                let tempdrawarrtosend=[]
+                singleuser.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singleuser._id})
+                    if(singleuser.limitsetting&&distributoruser.distributorhaddaloud){
+                        if(req.body.limittype==="uplimit"){
+                        tempdrawarrtosend=applyuplimits({drawarrtosend:tempdrawarrtosend1,limits:singleuser.limitsetting})
+                    }else{
+                        tempdrawarrtosend=applydownlimit({drawarrtosend:tempdrawarrtosend1,limits:singleuser.limitsetting})
+                    }
+                    }
+                    else{
+                        tempdrawarrtosend=[...tempdrawarrtosend1]
+                    }
                 totalsale=[...totalsale,...sales]
+            }
+            
             let alldraws=[]
             let drawtosend={}
             for (let singlesale of totalsale){
@@ -313,7 +342,7 @@ const convertObjectToArray = (obj) => {
             // if(distributoruser.haddaloud){
                 distributoruser.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:distributoruser._id})
             // }
-            if(distributoruser.role!=="merchant" && distributoruser.limitsetting){
+            if( distributoruser.limitsetting){
                 res.status(200).json({drawarrtosend,limits:distributoruser.limitsetting,username:distributoruser.username,name:distributoruser.name})
 
             }else{
@@ -361,7 +390,7 @@ const convertObjectToArray = (obj) => {
             if(distributoruser.haddaloud){
                 distributoruser.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:distributoruser._id})
             }
-            if(distributoruser.haddaloud && distributoruser.role!=="merchant" && distributoruser.limitsetting){
+            if(distributoruser.haddaloud && distributoruser.limitsetting){
                 res.status(200).json({drawarrtosend,limits:distributoruser.limitsetting,username:distributoruser.username,name:distributoruser.name})
 
             }else{
@@ -385,15 +414,36 @@ const convertObjectToArray = (obj) => {
         let allsales =await sale.find({type:"sale",drawid:drawinfo[0]._id})
         for (let singledistributor of distributorusers){
             let userid=singledistributor._id
-            // let users=await getAllUsersAddedBy(userid);
+            let users=await getAllUsersAddedByDirectOnly1(userid);
             let totalsale=[]
-            // for (let singleuser of users){
-            //     // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
-            //     let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
-            //     totalsale=[...totalsale,...sales]
-            // }
-            let sales= allsales.filter((obj)=>obj.addedby.includes(userid))
-                totalsale=[...totalsale,...sales]
+            for (let singleuser of users){
+                // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
+                let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
+                let tempalldraws=[]
+            let tempdrawtosend2={}
+            for (let singlesale of sales){
+                if(tempalldraws.includes(singlesale.bundle)){
+                    tempdrawtosend2[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( tempdrawtosend2[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                }else{
+                    tempalldraws.push(singlesale.bundle)
+                    tempdrawtosend2[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                }
+            }
+            let tempdrawarrtosend1=convertObjectToArray(tempdrawtosend2);
+            let tempdrawarrtosend=[]
+                singledistributor.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singledistributor._id})
+                if(singledistributor.limitsetting&&singledistributor.distributorhaddaloud){
+                    if(req.body.limittype==="uplimit"){
+                    tempdrawarrtosend=applyuplimits({drawarrtosend:tempdrawarrtosend1,limits:singledistributor.limitsetting})
+                }else{
+                    tempdrawarrtosend=applydownlimit({drawarrtosend:tempdrawarrtosend1,limits:singledistributor.limitsetting})
+                }
+                }
+                else{
+                    tempdrawarrtosend=[...tempdrawarrtosend1]
+                }
+                totalsale=[...totalsale,...tempdrawarrtosend]
+            }
             let alldraws=[]
             let drawtosend={}
             for (let singlesale of totalsale){
@@ -608,9 +658,44 @@ const convertObjectToArray = (obj) => {
         let allsales =await sale.find({type:"sale",drawid:drawinfo[0]._id})
         for (let singledistributor of distributorusers){
             let userid=singledistributor._id
+
+            let users=await getAllUsersAddedByDirectOnly1(userid);
+
+
+            
             let totalsale=[]
-            let sales= allsales.filter((obj)=>obj.addedby.includes(userid))
-            totalsale=[...totalsale,...sales]
+
+            for (let singleuser of users){
+                // let sales =await sale.find({type:"sale",addedby:singleuser._id,drawid:drawinfo[0]._id})
+                let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
+                let tempalldraws=[]
+            let tempdrawtosend2={}
+            for (let singlesale of sales){
+                if(tempalldraws.includes(singlesale.bundle)){
+                    tempdrawtosend2[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( tempdrawtosend2[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                }else{
+                    tempalldraws.push(singlesale.bundle)
+                    tempdrawtosend2[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                }
+            }
+            let tempdrawarrtosend1=convertObjectToArray(tempdrawtosend2);
+            let tempdrawarrtosend=[]
+                singledistributor.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singledistributor._id})
+                if(singledistributor.limitsetting&&singledistributor.distributorhaddaloud){
+                    if(req.body.limittype==="uplimit"){
+                    tempdrawarrtosend=applyuplimits({drawarrtosend:tempdrawarrtosend1,limits:singledistributor.limitsetting})
+                }else{
+                    tempdrawarrtosend=applydownlimit({drawarrtosend:tempdrawarrtosend1,limits:singledistributor.limitsetting})
+                }
+                }
+                else{
+                    tempdrawarrtosend=[...tempdrawarrtosend1]
+                }
+                totalsale=[...totalsale,...tempdrawarrtosend]
+            }
+
+            // let sales= allsales.filter((obj)=>obj.addedby.includes(userid))
+            // totalsale=[...totalsale,...sales]
             let alldraws=[]
             let drawtosend={}
             for (let singlesale of totalsale){
@@ -626,8 +711,6 @@ const convertObjectToArray = (obj) => {
             
             
             let tempdrawarrtosend=[]
-            // if(req.body.type==="uplimit"){
-                // if(singledistributor.haddaloud){
                         singledistributor.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singledistributor._id})
                     if(singledistributor.limitsetting){
                         tempdrawarrtosend=applyuplimits({drawarrtosend,limits:singledistributor.limitsetting})
@@ -635,18 +718,8 @@ const convertObjectToArray = (obj) => {
                     else{
                         tempdrawarrtosend=[...drawarrtosend]
                     }
-                // }
-            // }
-            // else{
-            //     tempdrawarrtosend=[...drawarrtosend]
-            // }
             tempmajor=[...tempmajor,...tempdrawarrtosend]
             
-            // else{
-            //     tempdrawarrtosend=applydownlimit({drawarrtosend,limits:singledistributor.limit})
-            // }
-            // majorsalesreport.push({obj,drawarrtosend,limits:singledistributor.limit,username:singledistributor.username,name:singledistributor.name,comission:singledistributor.comission})
-            // majorsalesreport.push({name:singledistributor.name,username:singledistributor.username,comission:singledistributor.comission,prize:gettheprizecalculation(tempdrawarrtosend,obj,singledistributor)})
         }
         let alldraws=[]
         let obj={
@@ -768,7 +841,6 @@ const convertObjectToArray = (obj) => {
                         salesprocessed.push(singlesale._id)
                     }
                 }
-                
             }
             let drawarrtosend=convertObjectToArray(drawtosend);
             majorsalesreport.push({drawarrtosend:drawarrtosend,username:singledistributor.username,name:singledistributor.name})
@@ -2006,6 +2078,22 @@ else{
         res.status(500).json({ message: "Internal server error" });
     }
   }
+  let getDistributorHaddLimitAloudornot= async (req, res) => {
+    try{const users=await user.findById({_id:req.Tokendata._id})
+    if(users){
+        if(users.distributorhaddaloud){
+            res.status(200).json(users.distributorhaddaloud);
+        }else{
+            res.status(200).json(false);
+        }
+        
+    }else{
+        res.status(500).json({ message: "User not found" });
+    }}
+    catch(e){
+        res.status(500).json({ message: "Internal server error" });
+    }
+  }
   function calculate(tempobj) {
     let dataarr = [];
     tempobj.majorsalesreport.forEach((report) => {
@@ -2366,5 +2454,6 @@ module.exports = {
     getAllSellBill,
     getTotalSaleforadmin,
     getPrefixes,
-    getReverseBalanceUpdated
+    getReverseBalanceUpdated,
+    getDistributorHaddLimitAloudornot
 };

@@ -309,6 +309,8 @@ let getDrawfieldsvalue = async (req, res) => {
     // Fetch the draw by its ID
     let draws = await draw.findById(drawid);
     let users = await user.findById(req.Tokendata._id);
+    let distributorid=req.Tokendata.distributorid
+    let Distributor=await user.findOne({_id:distributorid})
     // let users = await user.findById(req.Tokendata._id);
     if (draws) {
       let obj = { a: 0, b: 0 };
@@ -341,12 +343,12 @@ let getDrawfieldsvalue = async (req, res) => {
         userstoadd2 = "plimitdf";
     }
       let tempobj={f:0,s:0}
-      if(draws.user&&draws.user.has(req.Tokendata._id+soldnumbertoadd1)){
-        tempobj.s=Number(users.purchase[userstoadd2])-Number(draws.user.get(req.Tokendata._id+soldnumbertoadd2))
-        tempobj.f=Number(users.purchase[userstoadd1])-Number(draws.user.get(req.Tokendata._id+soldnumbertoadd1))
+      if(draws.user&&draws.user.has(distributorid+soldnumbertoadd1)){
+        tempobj.s=Number(Distributor.purchase[userstoadd2])-Number(draws.user.get(distributorid+soldnumbertoadd2))
+        tempobj.f=Number(Distributor.purchase[userstoadd1])-Number(draws.user.get(distributorid+soldnumbertoadd1))
       }else{
-        tempobj.s=Number(users.purchase[userstoadd2])
-        tempobj.f=Number(users.purchase[userstoadd1])
+        tempobj.s=Number(Distributor.purchase[userstoadd2])
+        tempobj.f=Number(Distributor.purchase[userstoadd1])
       }
       // Check if the sold numbers exist in the document
       if (draws.type&&draws.type.has(soldnumbertoadd1)) {
