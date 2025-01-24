@@ -29,7 +29,9 @@ const {Addsheetmerchant,getSheetsByDate,getDrawById,getSalesBySheet,
     getTotalSaleforadmin,
     getReverseBalanceUpdated,
     getPrefixes,
-    getDistributorHaddLimitAloudornot
+    getDistributorHaddLimitAloudornot,
+    getHaddLimitReportforparticulardistributorbymedealercutting,
+    getHaddLimitReportforalldistributorbymedealercutting 
 
 } = require("../Controllers/Report")
 const express = require("express");
@@ -44,6 +46,7 @@ router.post("/getDistributorSaleVoucherReportforalldistributor"  ,AuthenticateUs
 router.post("/getDistributorSaleVoucherReportforparticulardistributor"  ,AuthenticateUser,  getDistributorSaleVoucherReportforparticulardistributor )
 router.post("/getHaddLimitReportforalldistributor"  ,AuthenticateUser,  getHaddLimitReportforalldistributor )
 router.post("/getHaddLimitReportforalldistributorbyme"  ,AuthenticateUser,  getHaddLimitReportforalldistributorbyme )
+router.post("/getHaddLimitReportforalldistributorbymedealercutting"  ,AuthenticateUser,  getHaddLimitReportforalldistributorbymedealercutting )
 router.post("/getTotalSaleforparticularsubdistributor"  ,AuthenticateUser,  getTotalSaleforparticularsubdistributor )
 router.post("/getTotalSaleforparticularmerchantbyme"  ,AuthenticateUser,  getTotalSaleforparticularmerchantbyme )
 router.post("/getDistributorSaleVoucherReportforparticularmerchantbyme"  ,AuthenticateUser,  getDistributorSaleVoucherReportforparticularmerchantbyme )
@@ -65,6 +68,7 @@ router.post("/getSalesBySheet" ,AuthenticateUser ,  getSalesBySheet )
 router.post("/getAllSellBill" ,AuthenticateUser ,  getAllSellBill )
 router.get("/getTotalSaleforadmin/:date" ,AuthenticateUser ,  getTotalSaleforadmin )
 router.get("/getPrefixes/:date" ,AuthenticateUser ,  getPrefixes )
+router.post("/getHaddLimitReportforparticulardistributorbymedealercutting" ,AuthenticateUser ,  getHaddLimitReportforparticulardistributorbymedealercutting )
 router.get("/getDistributorHaddLimitAloudornot" ,AuthenticateUser ,  getDistributorHaddLimitAloudornot )
 router.post("/getHaddLimitReportforalldistributoradminbillsheet" ,AuthenticateUser ,  getHaddLimitReportforalldistributoradminbillsheet )
 module.exports = router;

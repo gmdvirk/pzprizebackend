@@ -432,6 +432,84 @@ const convertObjectToArray = (obj) => {
         res.status(500).json({ message: "Internal server error" });
     }
   };
+  let getHaddLimitReportforparticulardistributorbymedealercutting = async (req, res) => {
+    try {
+        let drawId=req.body.date
+        let userid=req.body.dealer
+        
+        let requestfrom =req.body.requestfrom
+        let distributoruser=await user.findById(userid)
+        let users=await getAllUsersAddedByDirectOnly1(userid);
+        let drawinfo=await draw.find({date:drawId})
+        let users1=await user.find({_id:userid})
+        users=[...users,...users1]
+        if(drawinfo){
+            let totalsale=[]
+            let allsales =await sale.find({type:"sale",addedby:userid,drawid:drawinfo[0]._id})
+            
+            for (let singleuser of users){
+                let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
+                if(requestfrom){
+                let tempalldraws=[]
+                let tempdrawtosend2={}
+                for (let singlesale of sales){
+                    if(tempalldraws.includes(singlesale.bundle)){
+                        tempdrawtosend2[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( tempdrawtosend2[singlesale.bundle].f )+singlesale.f,s:Number( tempdrawtosend2[singlesale.bundle].s )+singlesale.s}
+                    }else{
+                        tempalldraws.push(singlesale.bundle)
+                        tempdrawtosend2[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                    }
+                }
+                let tempdrawarrtosend1=convertObjectToArray(tempdrawtosend2);
+               
+                let tempdrawarrtosend=[]
+                singleuser.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singleuser._id})
+                    if(singleuser.limitsetting){
+                        if(req.body.limittype==="uplimit"){
+                        tempdrawarrtosend=applyuplimits({drawarrtosend:tempdrawarrtosend1,limits:singleuser.limitsetting})
+                    }else{
+                        tempdrawarrtosend=applydownlimit({drawarrtosend:tempdrawarrtosend1,limits:singleuser.limitsetting})
+                    }
+                    }
+                    else{
+                        tempdrawarrtosend=[...tempdrawarrtosend1]
+                    }
+                    totalsale=[...totalsale,...tempdrawarrtosend]
+                }else{
+                    totalsale=[...totalsale,...sales]
+                }
+                
+            }
+            let alldraws=[]
+            let drawtosend={}
+            for (let singlesale of totalsale){
+                if(alldraws.includes(singlesale.bundle)){
+                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                }else{
+                    alldraws.push(singlesale.bundle)
+                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                }
+            }
+            // let drawarrtosend=convertObjectToArray(drawtosend);
+            let drawarrtosend=convertObjectToArray(drawtosend);
+            if(distributoruser.haddaloud){
+                distributoruser.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:distributoruser._id})
+            }
+            if(distributoruser.haddaloud && distributoruser.limitsetting){
+                res.status(200).json({drawarrtosend,limits:distributoruser.limitsetting,username:distributoruser.username,name:distributoruser.name})
+
+            }else{
+                res.status(200).json({drawarrtosend,limits:distributoruser.limit,username:distributoruser.username,name:distributoruser.name});
+            }
+         
+        //   res.status(200).json({drawarrtosend,limits:distributoruser.limit,username:users1[0].username,user:users1[0].user});
+        }else{
+            res.status(404).json({ message: "Could not found the draw" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+  };
   let getHaddLimitReportforalldistributor = async (req, res) => {
     try {
         let drawId=req.body.date
@@ -1188,6 +1266,78 @@ const convertObjectToArray = (obj) => {
             for (let singleuser of users){
                 let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
 
+               if(requestfrom){ 
+                let tempalldraws=[]
+                let tempdrawtosend2={}
+                for (let singlesale of sales){
+                    if(tempalldraws.includes(singlesale.bundle)){
+                        tempdrawtosend2[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( tempdrawtosend2[singlesale.bundle].f )+singlesale.f,s:Number( tempdrawtosend2[singlesale.bundle].s )+singlesale.s}
+                    }else{
+                        tempalldraws.push(singlesale.bundle)
+                        tempdrawtosend2[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                    }
+                }
+                let tempdrawarrtosend1=convertObjectToArray(tempdrawtosend2);
+                let tempdrawarrtosend=[]
+                singleuser.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singleuser._id})
+                    if(singleuser.limitsetting&&singledistributor.distributorhaddaloud){
+                        if(req.body.limittype==="uplimit"){
+                        tempdrawarrtosend=applyuplimits({drawarrtosend:tempdrawarrtosend1,limits:singleuser.limitsetting})
+                    }else{
+                        tempdrawarrtosend=applydownlimit({drawarrtosend:tempdrawarrtosend1,limits:singleuser.limitsetting})
+                    }
+                    }
+                    else{
+                        tempdrawarrtosend=[...tempdrawarrtosend1]
+                    }
+
+                totalsale=[...totalsale,...tempdrawarrtosend]
+            }else{
+                    totalsale=[...totalsale,...sales]
+                }
+            }
+            let alldraws=[]
+            let drawtosend={}
+            for (let singlesale of totalsale){
+                if(alldraws.includes(singlesale.bundle)){
+                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:Number( drawtosend[singlesale.bundle].f )+singlesale.f,s:Number( drawtosend[singlesale.bundle].s )+singlesale.s}
+                }else{
+                    alldraws.push(singlesale.bundle)
+                    drawtosend[singlesale.bundle] ={bundle:singlesale.bundle,f:singlesale.f,s:singlesale.s}
+                }
+            }
+           let drawarrtosend=convertObjectToArray(drawtosend);
+            if(singledistributor.haddaloud){
+                singledistributor.limitsetting=await Limit.findOne({drawid:drawinfo[0]._id,userid:singledistributor._id})
+            }
+            if(singledistributor.haddaloud && singledistributor.role!=="merchant" && singledistributor.limitsetting){
+                majorsalesreport.push({drawarrtosend,limits:singledistributor.limitsetting,username:singledistributor.username,name:singledistributor.name})
+
+            }else{
+                majorsalesreport.push({drawarrtosend,limits:singledistributor.limit,username:singledistributor.username,name:singledistributor.name})
+            }
+        }
+       
+      res.status(200).json(majorsalesreport);
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+  };
+  let getHaddLimitReportforalldistributorbymedealercutting = async (req, res) => {
+    try {
+        let drawId=req.body.date
+        let requestfrom =req.body.requestfrom
+        // let 
+        let distributorusers=await user.find({_id:req.Tokendata._id})
+        let drawinfo=await draw.find({date:drawId})
+        let majorsalesreport=[]
+        let allsales =await sale.find({type:"sale",addedby:req.Tokendata._id,drawid:drawinfo[0]._id})
+        for (let singledistributor of distributorusers){
+            let userid=singledistributor._id
+            let users=await getAllUsersAddedByDirectOnly1(userid);
+            let totalsale=[]
+            for (let singleuser of users){
+                let sales= allsales.filter((obj)=>obj.addedby.includes(singleuser._id))
                if(requestfrom){ 
                 let tempalldraws=[]
                 let tempdrawtosend2={}
@@ -2509,5 +2659,7 @@ module.exports = {
     getTotalSaleforadmin,
     getPrefixes,
     getReverseBalanceUpdated,
-    getDistributorHaddLimitAloudornot
+    getDistributorHaddLimitAloudornot,
+    getHaddLimitReportforparticulardistributorbymedealercutting,
+    getHaddLimitReportforalldistributorbymedealercutting 
 };
