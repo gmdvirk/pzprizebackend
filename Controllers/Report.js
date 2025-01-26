@@ -1389,7 +1389,6 @@ const convertObjectToArray = (obj) => {
                 majorsalesreport.push({drawarrtosend,limits:singledistributor.limit,username:singledistributor.username,name:singledistributor.name})
             }
         }
-       
       res.status(200).json(majorsalesreport);
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });
