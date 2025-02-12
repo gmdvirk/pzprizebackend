@@ -3,7 +3,7 @@
 const cluster = require('cluster');
 const os = require('os');
 
-const numWorkers = 7; // Number of worker processes
+const numWorkers = 10; // Number of worker processes
 
 if (cluster.isMaster) {
     console.log(`Master process ${process.pid} is running`);

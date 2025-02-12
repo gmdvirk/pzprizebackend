@@ -1327,7 +1327,6 @@ const convertObjectToArray = (obj) => {
     try {
         let drawId=req.body.date
         let requestfrom =req.body.requestfrom
-        // let 
         let distributorusers=await user.find({_id:req.Tokendata._id})
         let drawinfo=await draw.find({date:drawId})
         let majorsalesreport=[]
@@ -1360,7 +1359,12 @@ const convertObjectToArray = (obj) => {
                     }
                     }
                     else{
-                        tempdrawarrtosend=[...tempdrawarrtosend1]
+                        if(req.body.limittype==="uplimit"){
+                            tempdrawarrtosend=[...tempdrawarrtosend1]
+                        }else{
+                        tempdrawarrtosend=applydownlimit({drawarrtosend:tempdrawarrtosend1,limits:singleuser.limit})
+                    }
+                        
                     }
 
                 totalsale=[...totalsale,...tempdrawarrtosend]
@@ -2415,12 +2419,18 @@ else{
 
           let availablebalance = (User.payment.availablebalance + Number(obj.grandTotal)) - Number(obj.nettotal);
           User.payment.availablebalance=availablebalance;
+          if(obj.nettotal>0){
+            User.payment.cash= Number(User.payment.cash) + Number(obj.nettotal)
+          }
           let data = { cash:totalamount*-1, credit:0, type:"Draw", description: drawinfo[0].title +" and Date : " + drawinfo[0].date, amount : totalamount*-1, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
         let paymentData = await payment.create([data], { session });
         } else {
           User.payment.balanceupline = Number(User.payment.balanceupline)-Number(obj.nettotal);
           let totalamount = Number(obj.nettotal)
           let availablebalance = User.payment.availablebalance;
+          if(obj.nettotal>0){
+            User.payment.cash= Number(User.payment.cash) + Number(obj.nettotal)
+          }
           let data = { cash:totalamount*-1, credit:0, type:"Draw", description:drawinfo[0].title +" and Date : " + drawinfo[0].date, amount : totalamount*-1, customerid: obj.id,availablebalance, addedby: req.Tokendata._id, balanceupline:User.payment.balanceupline };
           let paymentData = await payment.create([data], { session });
         }
