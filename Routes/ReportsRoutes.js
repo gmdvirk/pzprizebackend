@@ -31,7 +31,8 @@ const {Addsheetmerchant,getSheetsByDate,getDrawById,getSalesBySheet,
     getPrefixes,
     getDistributorHaddLimitAloudornot,
     getHaddLimitReportforparticulardistributorbymedealercutting,
-    getHaddLimitReportforalldistributorbymedealercutting 
+    getHaddLimitReportforalldistributorbymedealercutting ,
+    getMyDistributorHaddLimitAloudornot
 
 } = require("../Controllers/Report")
 const express = require("express");
@@ -70,5 +71,6 @@ router.get("/getTotalSaleforadmin/:date" ,AuthenticateUser ,  getTotalSaleforadm
 router.get("/getPrefixes/:date" ,AuthenticateUser ,  getPrefixes )
 router.post("/getHaddLimitReportforparticulardistributorbymedealercutting" ,AuthenticateUser ,  getHaddLimitReportforparticulardistributorbymedealercutting )
 router.get("/getDistributorHaddLimitAloudornot" ,AuthenticateUser ,  getDistributorHaddLimitAloudornot )
+router.get("/getMyDistributorHaddLimitAloudornot" ,AuthenticateUser ,  getMyDistributorHaddLimitAloudornot )
 router.post("/getHaddLimitReportforalldistributoradminbillsheet" ,AuthenticateUser ,  getHaddLimitReportforalldistributoradminbillsheet )
 module.exports = router;

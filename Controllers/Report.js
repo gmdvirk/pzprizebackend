@@ -472,7 +472,12 @@ const convertObjectToArray = (obj) => {
                     }
                     }
                     else{
-                        tempdrawarrtosend=[...tempdrawarrtosend1]
+                        if(req.body.limittype==="uplimit"){
+                            tempdrawarrtosend=[...tempdrawarrtosend1]
+                        }else{
+                        tempdrawarrtosend=applydownlimit({drawarrtosend:tempdrawarrtosend1,limits:singleuser.limit})
+                    }
+                        
                     }
                     totalsale=[...totalsale,...tempdrawarrtosend]
                 }else{
@@ -2301,6 +2306,24 @@ else{
         res.status(500).json({ message: "Internal server error" });
     }
   }
+  let getMyDistributorHaddLimitAloudornot= async (req, res) => {
+    try{
+        const users=await user.findById({_id:req.Tokendata._id})
+    if(users){
+        const usersdistributor=await user.findById({_id:users.addedby[users.addedby.length-1]})
+        if(usersdistributor.distributorhaddaloud){
+            res.status(200).json(usersdistributor.distributorhaddaloud);
+        }else{
+            res.status(200).json(false);
+        }
+        
+    }else{
+        res.status(500).json({ message: "User not found" });
+    }}
+    catch(e){
+        res.status(500).json({ message: "Internal server error" });
+    }
+  }
   function calculate(tempobj) {
     let dataarr = [];
     tempobj.majorsalesreport.forEach((report) => {
@@ -2670,5 +2693,6 @@ module.exports = {
     getReverseBalanceUpdated,
     getDistributorHaddLimitAloudornot,
     getHaddLimitReportforparticulardistributorbymedealercutting,
-    getHaddLimitReportforalldistributorbymedealercutting 
+    getHaddLimitReportforalldistributorbymedealercutting ,
+    getMyDistributorHaddLimitAloudornot
 };
